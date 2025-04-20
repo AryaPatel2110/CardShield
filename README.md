@@ -89,3 +89,5 @@ Project-specific startup commands are included in `docs/commands.txt`.
 
 ## Academic Context
 This repository reflects a master's first-semester project focused on building a practical big-data fraud detection pipeline instead of a minimal toy notebook.
+
+<!-- documented data preparation stage -->
