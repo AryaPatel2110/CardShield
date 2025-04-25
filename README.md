@@ -93,3 +93,5 @@ This repository reflects a master's first-semester project focused on building a
 <!-- documented data preparation stage -->
 
 <!-- expanded training workflow details -->
+
+<!-- documented producer and streaming components -->
