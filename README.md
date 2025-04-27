@@ -95,3 +95,5 @@ This repository reflects a master's first-semester project focused on building a
 <!-- expanded training workflow details -->
 
 <!-- documented producer and streaming components -->
+
+<!-- added Cassandra persistence notes -->
