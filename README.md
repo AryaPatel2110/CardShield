@@ -99,3 +99,5 @@ This repository reflects a master's first-semester project focused on building a
 <!-- added Cassandra persistence notes -->
 
 <!-- described dashboard monitoring workflow -->
+
+<!-- refined key files and environment notes -->
