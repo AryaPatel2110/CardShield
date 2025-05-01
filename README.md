@@ -103,3 +103,5 @@ This repository reflects a master's first-semester project focused on building a
 <!-- refined key files and environment notes -->
 
 <!-- added academic context and challenge summary -->
+
+<!-- polished wording and usage flow -->
