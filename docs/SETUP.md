@@ -7,3 +7,5 @@
 5. Execute model / scoring notebooks or dashboard scripts as needed.
 
 Refer to `commands.txt` for the original command references captured during project development.
+
+- Verify ports and service status before starting streaming jobs.
