@@ -107,3 +107,5 @@ This repository reflects a master's first-semester project focused on building a
 <!-- polished wording and usage flow -->
 
 <!-- tightened repo structure wording -->
+
+<!-- cleaned repo metadata notes -->
