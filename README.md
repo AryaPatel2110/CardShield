@@ -109,3 +109,5 @@ This repository reflects a master's first-semester project focused on building a
 <!-- tightened repo structure wording -->
 
 <!-- cleaned repo metadata notes -->
+
+<!-- finalized for public GitHub upload -->
