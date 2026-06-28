@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
+*.egg-info/
 .venv/
 venv/
 env/
@@ -15,10 +16,19 @@ env/
 Thumbs.db
 .vscode/
 .idea/
+web/node_modules/
+web/dist/
+*.tsbuildinfo
 
 # Runtime files
 *.log
 *.tmp
+runtime/
+.env
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
 
 # Local data artifacts
 *.csv
@@ -26,3 +36,7 @@ Thumbs.db
 *.feather
 *.db
 *.sqlite3
+models/fraud_pipeline/
+models/fraud_pipeline-metadata.json
+models/encoders/categories-v1.json
+notebooks/models/

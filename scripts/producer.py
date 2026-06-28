@@ -1,72 +1,16 @@
-from kafka import KafkaProducer
-import json
-import random
-import pandas as pd
-import threading
-import time
+"""Compatibility launcher for the production Kafka replay producer."""
 
-class DataGenerator:
-    index = 0
-    def __init__(self):
-        # read from csv
-        self.df = pd.read_csv('./data/clean_test.csv', index_col=0)
-        print(self.df.columns)
-        
-    def generateTransactions(self):
-        num = random.randint(1, 10)
-        # num = 1
-        messages = self.df[self.index: self.index + num].to_dict(orient='records')
-        self.index += num
-        return messages
+from __future__ import annotations
 
+import sys
+from pathlib import Path
 
-class MyProducer:
-    topic_name = 'transaction_data'
-    
-    def __init__(self):
-        self.producer = KafkaProducer(
-            bootstrap_servers=['localhost:9092'],
-            client_id="test-producer",
-            acks=1,
-            retries=5, 
-            key_serializer=lambda a:json.dumps(a).encode('utf-8'),
-            value_serializer=lambda b:json.dumps(b).encode('utf-8')
-        )
-        # print (self.producer.partitions_for('fifth_topic'))
-        # print (self.producerObj)
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+SOURCE_ROOT = PROJECT_ROOT / "src"
+if str(SOURCE_ROOT) not in sys.path:
+    sys.path.insert(0, str(SOURCE_ROOT))
 
-    def produce_message(self, message):
-        self.producer.send(self.topic_name, message)
+from producer import main  # noqa: E402
 
-    def send_data(self, messages, multi=True):
-        # Use threading for concurrent message production
-        if multi:
-            threads = []
-            for message in messages:
-                thread = threading.Thread(target=self.produce_message, args=(message,))
-                threads.append(thread)
-                thread.start()
-
-            # Wait for all threads to finish
-            for thread in threads:
-                thread.join()
-
-        else:
-            future=self.producer.send(self.topic_name, value=jsondata, key=jsondata['txn_id'])
-            self.producer.flush()
-
-    def __del__(self):
-        self.producer.close()
-
-print("Starting app...")
-dataGenerator=DataGenerator()
-MyProducer=MyProducer()
-
-try:
-    while True:
-        temp_data=dataGenerator.generateTransactions()
-        MyProducer.send_data(temp_data)
-        print(f'Sent {len(temp_data)} messages...')
-        time.sleep(3)
-except KeyboardInterrupt:
-    exit()
+if __name__ == "__main__":
+    main()

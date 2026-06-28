@@ -1,11 +1,26 @@
-Start zookeeper
-C:/kafka/kafka_2.12-3.7.0/bin/windows/zookeeper-server-start.bat C:/kafka/kafka_2.12-3.7.0/config/zookeeper.properties
+# Install
+python -m pip install -e ".[training,web,dev]"
+cd web && npm install && cd ..
 
-Start kafka
-C:/kafka/kafka_2.12-3.7.0/bin/windows/kafka-server-start.bat C:/kafka/kafka_2.12-3.7.0/config/server.properties
+# Data and model
+cardshield-preprocess
+cardshield-train
 
-Create kafka topic
-C:/kafka/kafka_2.12-3.7.0/bin/windows/kafka-topics.bat --create --topic transaction_data --bootstrap-server localhost:9092
+# Infrastructure
+docker compose up -d kafka cassandra
+docker compose run --rm kafka-init
+cardshield-migrate
 
-Listen to Kafka topic
-C:/kafka/kafka_2.12-3.7.0/bin/windows/kafka-console-consumer.bat --topic test-topic --from-beginning --bootstrap-server localhost:9092
+# Runtime (separate terminals)
+cardshield-score
+cardshield-produce --max-records 100
+cardshield-api
+cd web && npm run dev
+
+# Quality
+ruff check src tests scripts
+mypy
+pytest
+
+# Full containerized demo
+docker compose --profile demo up --build

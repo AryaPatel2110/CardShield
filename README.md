@@ -1,113 +1,212 @@
-# CardShield: Real-Time Credit Card Fraud Detection
+# CardShield
 
-CardShield is a graduate project that demonstrates an end-to-end fraud detection pipeline for streaming credit card transactions. The system combines data preprocessing, model training, event streaming, real-time scoring, Cassandra persistence, and a lightweight dashboard for monitoring results.
+CardShield is a streaming credit-card fraud detection project built with
+PySpark, Kafka, Cassandra, FastAPI, and React. The repository includes the original
+academic notebooks and production-oriented Python modules directly under
+`src/`.
 
-## Project Highlights
-- Built an end-to-end fraud detection workflow using **PySpark, Kafka, Cassandra, and Python**.
-- Trained a fraud classification model on large-scale transaction data and prepared encoded artifacts for downstream scoring.
-- Simulated transaction streaming with a Python producer and processed predictions in near real time.
-- Added a dashboard layer to visualize transaction activity and fraud metrics.
-- Documented setup steps, system architecture, and project presentation assets in one place.
+## Runtime flow
 
-## Repository Structure
-```
-CardShield/
-├── assets/
-│   ├── architecture.png
-│   └── tech_stack.png
-├── docs/
-│   ├── commands.txt
-│   ├── project_presentation.pptx
-│   └── SETUP.md
-├── models/
-│   └── encoders/
-│       └── LE_model_v1.pkl
-├── notebooks/
-│   ├── cassandra_setup.ipynb
-│   ├── data_cleaning.ipynb
-│   ├── fraud_detection.ipynb
-│   ├── kafka_script.ipynb
-│   └── model_training.ipynb
-├── scripts/
-│   ├── dashboard_demo.py
-│   └── producer.py
-├── .gitignore
-├── LICENSE
-└── README.md
+```text
+Sparkov dataset
+  -> leakage-safe preprocessing
+  -> Spark Random Forest training and evaluation
+  -> versioned model
+  -> Kafka transaction topic
+  -> Spark Structured Streaming scoring
+  -> Cassandra time-bucketed query tables
 ```
 
-## Tech Stack
-![Tech Stack](assets/tech_stack.png)
+Invalid Kafka events are sent to `transactions.dlq.v1`. Spark offsets are
+checkpointed under `runtime/checkpoints`, and each prediction stores its model
+version and fraud probability.
 
-### Core Components
-- **Data generation / ingestion:** Python scripts and notebook-driven preparation
-- **Streaming:** Apache Kafka + Zookeeper
-- **Modeling:** PySpark / Spark ML
-- **Storage:** Apache Cassandra
-- **Visualization:** Streamlit-style Python dashboard workflow
+## Requirements
+
+- Python 3.11
+- Java 17
+- Node.js 20 or newer
+- Docker Desktop
+- Approximately 3 GB of free disk space for the dataset and containers
+
+On macOS:
+
+```bash
+brew install python@3.11 openjdk@17
+export JAVA_HOME="$(brew --prefix openjdk@17)/libexec/openjdk.jdk/Contents/Home"
+export PATH="$JAVA_HOME/bin:$PATH"
+```
 
 ## Dataset
-This project uses the public fraud detection dataset from Kaggle and draws inspiration from the Sparkov synthetic data generation workflow. The full dataset is large and is not included in this repository.
 
-## Workflow
-1. Clean and prepare raw transaction data.
-2. Train and evaluate the fraud detection model.
-3. Serialize encoders / artifacts needed during inference.
-4. Start Kafka, Zookeeper, and Cassandra services.
-5. Produce transaction events to Kafka.
-6. Consume and score transactions.
-7. Store outputs in Cassandra.
-8. Display transaction and fraud insights on the dashboard.
+Download the
+[Credit Card Transactions Fraud Detection dataset](https://www.kaggle.com/datasets/kartik2112/fraud-detection/data)
+and place these files under `data/`:
 
-## Key Files
-- `notebooks/data_cleaning.ipynb` — preprocessing and feature preparation
-- `notebooks/model_training.ipynb` — training workflow and model experimentation
-- `notebooks/fraud_detection.ipynb` — fraud scoring logic and pipeline exploration
-- `notebooks/kafka_script.ipynb` — Kafka integration work
-- `notebooks/cassandra_setup.ipynb` — Cassandra setup / data flow support
-- `scripts/producer.py` — transaction producer for Kafka topic streaming
-- `scripts/dashboard_demo.py` — dashboard / reporting logic
+```text
+data/fraudTrain.csv
+data/fraudTest.csv
+```
 
-## Environment Notes
-Recommended baseline environment:
-- Python 3.11
-- Java 8+
-- Apache Spark
-- Apache Kafka
-- Apache Cassandra
+Using the Kaggle CLI:
 
-Project-specific startup commands are included in `docs/commands.txt`.
+```bash
+kaggle datasets download \
+  -d kartik2112/fraud-detection \
+  -p data \
+  --unzip
+```
 
-## System Architecture
-![System Architecture](assets/architecture.png)
+## Install
 
-## Challenges Encountered
-- Environment compatibility across Spark, Kafka, Cassandra, and Python
-- High-volume synthetic data generation and handling
-- Cassandra setup and memory allocation tuning
-- Connecting batch model artifacts to streaming inference cleanly
+```bash
+python3.11 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -e ".[training,web,dev]"
+cp .env.example .env
+cd web && npm install && cd ..
+```
 
-## Academic Context
-This repository reflects a master's first-semester project focused on building a practical big-data fraud detection pipeline instead of a minimal toy notebook.
+## Prepare data and train
 
-<!-- documented data preparation stage -->
+The preprocessing job fits categorical mappings only on `fraudTrain.csv`.
+`fraudTest.csv` remains a later validation/replay period.
 
-<!-- expanded training workflow details -->
+```bash
+cardshield-preprocess
+cardshield-train
+```
 
-<!-- documented producer and streaming components -->
+For a quick pipeline check:
 
-<!-- added Cassandra persistence notes -->
+```bash
+cardshield-preprocess --sample-size 5000
+cardshield-train --num-trees 10 --max-depth 5
+```
 
-<!-- described dashboard monitoring workflow -->
+Do not treat a smoke-test model as release-ready. Review
+`models/fraud_pipeline-metadata.json`, especially fraud recall, fraud precision,
+PR-AUC, and the confusion matrix.
 
-<!-- refined key files and environment notes -->
+## Run locally
 
-<!-- added academic context and challenge summary -->
+Start Kafka and Cassandra:
 
-<!-- polished wording and usage flow -->
+```bash
+docker compose up -d kafka cassandra
+docker compose run --rm kafka-init
+```
 
-<!-- tightened repo structure wording -->
+Apply Cassandra migrations:
 
-<!-- cleaned repo metadata notes -->
+```bash
+cardshield-migrate
+```
 
-<!-- finalized for public GitHub upload -->
+Open four terminals with the virtual environment activated.
+
+Terminal 1 — start scoring:
+
+```bash
+cardshield-score
+```
+
+Terminal 2 — replay transactions:
+
+```bash
+cardshield-produce --max-records 100
+```
+
+Terminal 3 — start the model and dashboard API:
+
+```bash
+cardshield-api
+```
+
+On macOS, if Java is not globally registered:
+
+```bash
+export JAVA_HOME="$(brew --prefix openjdk@17)"
+cardshield-api
+```
+
+Terminal 4 — start the React website:
+
+```bash
+cd web
+npm run dev
+```
+
+Open [http://localhost:5173](http://localhost:5173). The website includes:
+
+- `/` — the CardShield landing page;
+- `/dashboard` — live Cassandra metrics and recent model decisions;
+- `/simulate` — a form that scores a transaction with the saved Spark model.
+
+The first API startup can take several seconds while Spark loads the model.
+Each simulator result is written to Cassandra when storage is available, so it
+will immediately become part of the dashboard.
+
+## Run the containerized stack
+
+After preprocessing and training have created `data/clean_test.csv` and
+`models/fraud_pipeline`:
+
+```bash
+docker compose --profile demo up --build
+```
+
+Open [http://localhost:3000](http://localhost:3000) for the containerized
+website. Its Nginx server forwards API requests to the `api` service.
+
+The `producer` service is under the `demo` profile because a production
+deployment receives transactions from a payment system rather than replaying a
+CSV.
+
+## Commands
+
+| Command | Purpose |
+|---|---|
+| `cardshield-preprocess` | Build train, validation, replay, and encoder artifacts |
+| `cardshield-train` | Train and evaluate the Spark model |
+| `cardshield-migrate` | Create production Cassandra tables |
+| `cardshield-score` | Run the Structured Streaming scorer |
+| `cardshield-produce` | Replay validated development transactions |
+| `cardshield-api` | Serve model inference and dashboard endpoints |
+| `make web` | Start the React development server |
+| `make test` | Run unit tests |
+| `make lint` | Run Ruff and strict MyPy |
+
+## Package structure
+
+```text
+src/
+├── config.py                 # environment configuration
+├── schemas.py                # versioned transaction contract
+├── preprocessing.py          # leakage-safe dataset preparation
+├── training.py               # Spark training and evaluation
+├── producer.py               # idempotent Kafka replay producer
+├── streaming_job.py          # Structured Streaming inference
+├── model_service.py          # synchronous Spark inference for the API
+├── api.py                    # prediction and dashboard HTTP endpoints
+├── cassandra_repository.py   # idempotent persistence
+├── migrate.py                # CQL migration runner
+└── app_logging.py            # JSON service logs
+web/                          # Vite + React website
+```
+
+## Production boundary
+
+This code is production-oriented, but the included Compose stack is a
+single-machine development environment. A real payment deployment still needs:
+
+- multi-node, TLS-authenticated Kafka and Cassandra;
+- durable remote Spark checkpoints;
+- a model registry and approval workflow;
+- payment-data tokenization and PCI DSS controls;
+- authenticated operational interfaces;
+- metrics, alerting, backups, disaster-recovery tests, and load tests;
+- a model that passes agreed fraud recall and false-positive release gates.
+
+See [docs/PRODUCTION.md](docs/PRODUCTION.md) for deployment gates.
