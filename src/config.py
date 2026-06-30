@@ -53,6 +53,7 @@ class Settings:
     kafka_dead_letter_topic: str = "transactions.dlq.v1"
     kafka_consumer_group: str = "cardshield-scorer-v1"
     kafka_client_id: str = "cardshield"
+    kafka_starting_offsets: str = "latest"
 
     cassandra_hosts: tuple[str, ...] = ("127.0.0.1",)
     cassandra_port: int = 9042
@@ -104,6 +105,11 @@ class Settings:
                 "CARDSHIELD_CASSANDRA_USERNAME and "
                 "CARDSHIELD_CASSANDRA_PASSWORD must be set together"
             )
+        starting_offsets = os.getenv("CARDSHIELD_KAFKA_STARTING_OFFSETS", "latest")
+        if starting_offsets not in {"earliest", "latest"}:
+            raise ConfigurationError(
+                "CARDSHIELD_KAFKA_STARTING_OFFSETS must be earliest or latest"
+            )
 
         return cls(
             project_root=root,
@@ -118,6 +124,7 @@ class Settings:
                 "CARDSHIELD_KAFKA_CONSUMER_GROUP", "cardshield-scorer-v1"
             ),
             kafka_client_id=os.getenv("CARDSHIELD_KAFKA_CLIENT_ID", "cardshield"),
+            kafka_starting_offsets=starting_offsets,
             cassandra_hosts=_read_hosts("CARDSHIELD_CASSANDRA_HOSTS", "127.0.0.1"),
             cassandra_port=_read_int("CARDSHIELD_CASSANDRA_PORT", 9042),
             cassandra_keyspace=os.getenv("CARDSHIELD_CASSANDRA_KEYSPACE", "bigdata"),

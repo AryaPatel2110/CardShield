@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
-import { getDashboard } from '../api'
-import type { DashboardData } from '../types'
+import { useSearchParams } from 'react-router-dom'
+import { getDashboard, getHealth, getPipelineStatus } from '../api'
+import { demoDashboard } from '../demoData'
+import type { DashboardData, HealthData, PipelineStage, Transaction } from '../types'
 
 const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
 const number = new Intl.NumberFormat('en-US')
@@ -10,13 +12,27 @@ export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
+  const [health, setHealth] = useState<HealthData | null>(null)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [selected, setSelected] = useState<Transaction | null>(null)
+  const [trace, setTrace] = useState<PipelineStage[]>([])
+  const highlightedId = searchParams.get('highlight')
+
+  const closeInspector = useCallback(() => {
+    setSelected(null)
+    setTrace([])
+    setSearchParams({})
+  }, [setSearchParams])
 
   const load = useCallback(async () => {
     try {
       setError('')
-      setData(await getDashboard())
+      const dashboard = await getDashboard()
+      setData(dashboard)
+      getHealth().then(setHealth).catch(() => setHealth(null))
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Unable to load dashboard')
+      setData((current) => current ?? demoDashboard)
     } finally {
       setLoading(false)
     }
@@ -24,9 +40,37 @@ export default function DashboardPage() {
 
   useEffect(() => {
     void load()
-    const timer = window.setInterval(() => void load(), 15_000)
+    const timer = window.setInterval(() => void load(), 5_000)
     return () => window.clearInterval(timer)
   }, [load])
+
+  useEffect(() => {
+    if (!highlightedId || !data) return
+    const transaction = data.recent_transactions.find((item) => item.trans_num === highlightedId)
+    if (transaction) {
+      setSelected(transaction)
+      void getPipelineStatus(transaction.trans_num)
+        .then((status) => setTrace(status.stages))
+        .catch(() => setTrace([]))
+    }
+  }, [data, highlightedId])
+
+  useEffect(() => {
+    if (!selected) return
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') closeInspector()
+    }
+    window.addEventListener('keydown', closeOnEscape)
+    return () => window.removeEventListener('keydown', closeOnEscape)
+  }, [closeInspector, selected])
+
+  const inspect = (transaction: Transaction) => {
+    setSelected(transaction)
+    setSearchParams({ highlight: transaction.trans_num })
+    void getPipelineStatus(transaction.trans_num)
+      .then((status) => setTrace(status.stages))
+      .catch(() => setTrace([]))
+  }
 
   return (
     <section className="dashboard-page page-width">
@@ -42,16 +86,32 @@ export default function DashboardPage() {
       </div>
 
       {error && (
-        <div className="error-banner">
-          <strong>Dashboard data is unavailable.</strong>
-          <span>{error}. Make sure Cassandra is running and migrations are applied.</span>
+        <div className="error-banner preview-banner">
+          <strong>Preview data</strong>
+          <span>Live services are unavailable ({error}). Showing a clearly labeled recruiter-demo preview.</span>
         </div>
       )}
 
+      <div className="health-strip">
+        <div>
+          <span className={`health-dot ${health?.status === 'ok' ? '' : 'degraded'}`} />
+          <strong>{health?.status === 'ok' ? 'All systems operational' : 'System degraded'}</strong>
+          <small>Model {health?.model_version ?? 'checking…'}</small>
+        </div>
+        <div className="component-health">
+          {Object.entries(health?.components ?? {}).map(([name, component]) => (
+            <span key={name}>
+              <i className={component.status} /> {name}
+              <small>{component.detail}</small>
+            </span>
+          ))}
+        </div>
+      </div>
+
       <div className="metric-grid">
-        <Metric label="Transactions analyzed" value={number.format(data?.metrics.total_transactions ?? 0)} trend="Live sample" />
+        <Metric label="Transactions analyzed" value={number.format(data?.metrics.total_transactions ?? 0)} trend={`Latest ${data?.window.maximum_transactions ?? 250} · 7-day window`} />
         <Metric label="Fraud detected" value={number.format(data?.metrics.fraud_transactions ?? 0)} trend="Model decisions" danger />
-        <Metric label="Fraud rate" value={percent(data?.metrics.fraud_rate ?? 0)} trend="Across recent activity" />
+        <Metric label="Throughput" value={`${(data?.metrics.transactions_per_minute ?? 0).toFixed(1)}/min`} trend="Across observed window" />
         <Metric label="Amount at risk" value={money.format(data?.metrics.amount_at_risk ?? 0)} trend="Flagged transaction value" danger />
       </div>
 
@@ -78,7 +138,7 @@ export default function DashboardPage() {
 
         <article className="panel category-panel">
           <div className="panel-heading">
-            <div><span>Signal concentration</span><h2>Top categories</h2></div>
+            <div><span>Signal concentration</span><h2>Highest-risk categories</h2></div>
           </div>
           <div className="bar-list">
             {(data?.category_risk ?? []).length === 0 && <p className="empty-state">No transaction data yet.</p>}
@@ -95,14 +155,22 @@ export default function DashboardPage() {
       <article className="panel transaction-panel">
         <div className="panel-heading">
           <div><span>Latest decisions</span><h2>Recent transactions</h2></div>
-          <small>Auto-refreshes every 15 seconds</small>
+          <small>Auto-refreshes every 5 seconds · latest 250 over 7 days</small>
         </div>
         <div className="table-scroll">
           <table>
             <thead><tr><th>Transaction</th><th>Merchant</th><th>Category</th><th>Amount</th><th>Risk score</th><th>Decision</th></tr></thead>
             <tbody>
               {(data?.recent_transactions ?? []).map((transaction) => (
-                <tr key={transaction.trans_num}>
+                <tr
+                  key={transaction.trans_num}
+                  className={transaction.trans_num === highlightedId ? 'highlighted-row' : ''}
+                  onClick={() => inspect(transaction)}
+                  tabIndex={0}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') inspect(transaction)
+                  }}
+                >
                   <td><span className="mono">#{transaction.trans_num.slice(0, 8)}</span><small>{new Date(transaction.inserted_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</small></td>
                   <td>{transaction.merchant?.replace('fraud_', '') ?? 'Unknown'}</td>
                   <td className="capitalize">{transaction.category?.replaceAll('_', ' ') ?? 'Unknown'}</td>
@@ -118,6 +186,37 @@ export default function DashboardPage() {
           </table>
         </div>
       </article>
+      {selected && (
+        <div className="inspector-backdrop" role="presentation" onClick={closeInspector}>
+          <aside className="transaction-inspector" role="dialog" aria-modal="true" aria-label="Transaction details" onClick={(event) => event.stopPropagation()}>
+            <button className="inspector-close" onClick={closeInspector} aria-label="Close transaction details">×</button>
+            <div className="result-kicker"><i /> Decision audit</div>
+            <h2>{selected.is_fraud_prediction ? 'Flagged transaction' : 'Approved transaction'}</h2>
+            <span className={`status-pill ${selected.is_fraud_prediction ? 'blocked' : 'approved'}`}>
+              {percent(selected.fraud_probability)} fraud probability
+            </span>
+            <dl>
+              <div><dt>Transaction</dt><dd>#{selected.trans_num.slice(0, 12)}</dd></div>
+              <div><dt>Merchant</dt><dd>{selected.merchant?.replace('fraud_', '') ?? 'Unknown'}</dd></div>
+              <div><dt>Category</dt><dd>{selected.category?.replaceAll('_', ' ') ?? 'Unknown'}</dd></div>
+              <div><dt>Amount</dt><dd>{money.format(selected.amt)}</dd></div>
+              <div><dt>Model</dt><dd>{selected.model_version}</dd></div>
+              <div><dt>Scored</dt><dd>{new Date(selected.inserted_at).toLocaleString()}</dd></div>
+            </dl>
+            <div className="audit-trace">
+              <strong>Pipeline audit trail</strong>
+              {trace.length === 0 && <p>No interactive trace attached. This event may have come from dataset replay.</p>}
+              {trace.map((stage) => (
+                <div key={`${stage.stage}-${stage.occurred_at}`}>
+                  <i />
+                  <span><b>{stage.stage.replaceAll('_', ' ')}</b><small>{stage.detail}</small></span>
+                  <time>{new Date(stage.occurred_at).toLocaleTimeString()}</time>
+                </div>
+              ))}
+            </div>
+          </aside>
+        </div>
+      )}
     </section>
   )
 }

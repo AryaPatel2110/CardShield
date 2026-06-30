@@ -77,6 +77,22 @@ class CassandraRepository:
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """
         )
+        self._insert_pipeline_trace = self._session.prepare(
+            """
+            INSERT INTO pipeline_trace_by_transaction (
+                trans_num, occurred_at, stage, detail, amt, merchant, category,
+                fraud_probability, is_fraud_prediction, model_version
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """
+        )
+        self._select_pipeline_trace = self._session.prepare(
+            """
+            SELECT trans_num, occurred_at, stage, detail, amt, merchant, category,
+                   fraud_probability, is_fraud_prediction, model_version
+            FROM pipeline_trace_by_transaction
+            WHERE trans_num = ?
+            """
+        )
 
     def write_scored(self, scored: ScoredTransaction) -> None:
         transaction = scored.transaction
@@ -123,6 +139,41 @@ class CassandraRepository:
             self.write_scored(transaction)
             count += 1
         return count
+
+    def record_pipeline_stage(
+        self,
+        transaction_id: str,
+        stage: str,
+        *,
+        occurred_at: datetime | None = None,
+        detail: str | None = None,
+        amount: float | None = None,
+        merchant: str | None = None,
+        category: str | None = None,
+        fraud_probability: float | None = None,
+        prediction: int | None = None,
+        model_version: str | None = None,
+    ) -> None:
+        """Append one short-lived audit event for the interactive live demo."""
+        self._session.execute(
+            self._insert_pipeline_trace,
+            (
+                transaction_id,
+                occurred_at or datetime.now(UTC),
+                stage,
+                detail,
+                Decimal(str(amount)) if amount is not None else None,
+                merchant,
+                category,
+                fraud_probability,
+                prediction,
+                model_version,
+            ),
+        )
+
+    def pipeline_trace(self, transaction_id: str) -> list[dict[str, Any]]:
+        rows = self._session.execute(self._select_pipeline_trace, (transaction_id,))
+        return [dict(row._asdict()) for row in rows]
 
     def recent_transactions(
         self,

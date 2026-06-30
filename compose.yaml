@@ -5,6 +5,7 @@ x-cardshield-environment: &cardshield-environment
   CARDSHIELD_KAFKA_BOOTSTRAP_SERVERS: kafka:19092
   CARDSHIELD_KAFKA_INPUT_TOPIC: transactions.v1
   CARDSHIELD_KAFKA_DEAD_LETTER_TOPIC: transactions.dlq.v1
+  CARDSHIELD_KAFKA_STARTING_OFFSETS: earliest
   CARDSHIELD_CASSANDRA_HOSTS: cassandra
   CARDSHIELD_CASSANDRA_PORT: "9042"
   CARDSHIELD_CASSANDRA_KEYSPACE: bigdata
@@ -111,6 +112,18 @@ services:
     depends_on:
       migrate:
         condition: service_completed_successfully
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=3)",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
     restart: unless-stopped
 
   web:
@@ -119,7 +132,8 @@ services:
     ports:
       - "3000:80"
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     restart: unless-stopped
 
   producer:
@@ -128,6 +142,8 @@ services:
     depends_on:
       kafka-init:
         condition: service_completed_successfully
+      scorer:
+        condition: service_started
     profiles: ["demo"]
     restart: unless-stopped
 

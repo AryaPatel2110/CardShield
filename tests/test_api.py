@@ -4,7 +4,7 @@ import unittest
 from datetime import UTC, datetime
 from decimal import Decimal
 
-from api import PredictionRequest, _dashboard_payload
+from api import PredictionRequest, _dashboard_payload, _pipeline_payload
 
 
 class ApiTests(unittest.TestCase):
@@ -40,6 +40,40 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(result["metrics"]["fraud_transactions"], 1)
         self.assertEqual(result["metrics"]["amount_at_risk"], 125.5)
         self.assertEqual(result["recent_transactions"][0]["amt"], 125.5)
+
+    def test_pipeline_payload_reports_completion_and_latency(self) -> None:
+        rows = [
+            {
+                "trans_num": "trace-1",
+                "occurred_at": datetime(2026, 1, 1, 12, 0, tzinfo=UTC),
+                "stage": "API_ACCEPTED",
+                "detail": "validated",
+                "amt": Decimal("25.00"),
+                "merchant": "Store",
+                "category": "food",
+                "fraud_probability": None,
+                "is_fraud_prediction": None,
+                "model_version": None,
+            },
+            {
+                "trans_num": "trace-1",
+                "occurred_at": datetime(2026, 1, 1, 12, 0, 2, tzinfo=UTC),
+                "stage": "CASSANDRA_PERSISTED",
+                "detail": "stored",
+                "amt": Decimal("25.00"),
+                "merchant": "Store",
+                "category": "food",
+                "fraud_probability": 0.04,
+                "is_fraud_prediction": 0,
+                "model_version": "test-v1",
+            },
+        ]
+
+        result = _pipeline_payload(rows)
+
+        self.assertEqual(result["status"], "complete")
+        self.assertEqual(result["latency_ms"], 2000)
+        self.assertTrue(result["prediction"]["stored"])
 
     def test_prediction_request_rejects_invalid_coordinates(self) -> None:
         with self.assertRaises(ValueError):

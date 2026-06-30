@@ -116,5 +116,33 @@ class ModelScorer:
             model_version=self._settings.model_version,
         )
 
+    def score_many(
+        self,
+        transactions: list[TransactionEvent],
+    ) -> list[ScoredTransaction]:
+        """Score a small batch efficiently, primarily for deterministic demo presets."""
+        if not transactions:
+            return []
+        rows = [
+            {"trans_num": transaction.trans_num, **transaction.feature_values()}
+            for transaction in transactions
+        ]
+        with self._lock:
+            predictions = (
+                self._model.transform(self._spark.createDataFrame(rows))
+                .select("trans_num", "prediction", "probability")
+                .collect()
+            )
+        by_id = {transaction.trans_num: transaction for transaction in transactions}
+        return [
+            ScoredTransaction.create(
+                by_id[str(row["trans_num"])],
+                prediction=int(row["prediction"]),
+                fraud_probability=float(row["probability"][1]),
+                model_version=self._settings.model_version,
+            )
+            for row in predictions
+        ]
+
     def close(self) -> None:
         self._spark.stop()

@@ -14,7 +14,8 @@ from typing import Any
 from pyspark.ml import Pipeline
 from pyspark.ml.classification import RandomForestClassifier
 from pyspark.ml.evaluation import BinaryClassificationEvaluator, MulticlassClassificationEvaluator
-from pyspark.ml.feature import VectorAssembler
+from pyspark.ml.feature import OneHotEncoder, SQLTransformer, StringIndexer, VectorAssembler
+from pyspark.ml.functions import vector_to_array
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql import functions as functions
 
@@ -23,6 +24,24 @@ from config import Settings
 from schemas import FEATURE_COLUMNS
 
 LOGGER = logging.getLogger(__name__)
+
+NUMERIC_MODEL_FEATURES: tuple[str, ...] = (
+    "amt",
+    "lat",
+    "long",
+    "city_pop",
+    "merch_lat",
+    "merch_long",
+    "distance_km",
+    "transaction_hour",
+    "transaction_day_of_week",
+)
+CATEGORICAL_LABELS: tuple[str, ...] = (
+    "merchant_label",
+    "category_label",
+    "gender_label",
+    "job_label",
+)
 
 
 def create_spark_session() -> SparkSession:
@@ -98,6 +117,58 @@ def evaluate(predictions: DataFrame) -> dict[str, Any]:
     }
 
 
+def threshold_diagnostics(predictions: DataFrame) -> dict[str, Any]:
+    """Select an operating point on calibration data under a recall constraint."""
+    scored = predictions.withColumn(
+        "fraud_probability",
+        vector_to_array(functions.col("probability"))[1],
+    )
+    candidates: list[dict[str, float]] = []
+    for threshold in (0.3, 0.4, 0.5, 0.55, 0.6, 0.625, 0.65, 0.675, 0.7, 0.75):
+        counts = {
+            (int(row["is_fraud"]), int(row["threshold_prediction"])): int(row["count"])
+            for row in (
+                scored.withColumn(
+                    "threshold_prediction",
+                    (functions.col("fraud_probability") >= threshold).cast("int"),
+                )
+                .groupBy("is_fraud", "threshold_prediction")
+                .count()
+                .collect()
+            )
+        }
+        true_positive = counts.get((1, 1), 0)
+        false_positive = counts.get((0, 1), 0)
+        false_negative = counts.get((1, 0), 0)
+        precision = true_positive / (true_positive + false_positive or 1)
+        recall = true_positive / (true_positive + false_negative or 1)
+        f1 = 2 * precision * recall / (precision + recall or 1)
+        candidates.append(
+            {
+                "threshold": threshold,
+                "fraud_precision": precision,
+                "fraud_recall": recall,
+                "fraud_f1": f1,
+            }
+        )
+    recall_eligible = [item for item in candidates if item["fraud_recall"] >= 0.6]
+    recommended = max(
+        recall_eligible or candidates,
+        key=lambda item: item["fraud_f1"],
+    )
+    return {
+        "candidates": candidates,
+        "selected_on_calibration": recommended,
+        "applied_threshold": recommended["threshold"],
+        "selection_policy": "maximum fraud F1 among candidates with at least 60% recall",
+        "note": (
+            "Selected on the earlier half of the held-out period and evaluated on "
+            "the later half. Production approval still requires explicit fraud-loss "
+            "and false-decline costs."
+        ),
+    }
+
+
 def train_model(
     settings: Settings,
     *,
@@ -109,10 +180,42 @@ def train_model(
     try:
         training = load_dataset(spark, settings.processed_train_path)
         validation = load_dataset(spark, settings.processed_validation_path)
+        cutoff = validation.approxQuantile("unix_time", [0.5], 0.001)[0]
+        calibration = validation.filter(functions.col("unix_time") <= cutoff)
+        evaluation = validation.filter(functions.col("unix_time") > cutoff)
         weighted_training, fraud_weight = add_class_weights(training)
 
+        feature_engineering = SQLTransformer(
+            statement="""
+                SELECT *,
+                    pmod(CAST(FLOOR(unix_time / 3600) AS INT), 24)
+                        AS transaction_hour,
+                    pmod(CAST(FLOOR(unix_time / 86400) + 4 AS INT), 7)
+                        AS transaction_day_of_week,
+                    SQRT(
+                        POW(lat - merch_lat, 2) +
+                        POW((long - merch_long) * COS(RADIANS(lat)), 2)
+                    ) * 111.32 AS distance_km
+                FROM __THIS__
+            """
+        )
+        indexers = [
+            StringIndexer(
+                inputCol=column,
+                outputCol=f"{column}_index",
+                handleInvalid="keep",
+            )
+            for column in CATEGORICAL_LABELS
+        ]
+        categorical_vectors = [f"{column}_vector" for column in CATEGORICAL_LABELS]
+        one_hot = OneHotEncoder(
+            inputCols=[f"{column}_index" for column in CATEGORICAL_LABELS],
+            outputCols=categorical_vectors,
+            handleInvalid="keep",
+            dropLast=False,
+        )
         assembler = VectorAssembler(
-            inputCols=list(FEATURE_COLUMNS),
+            inputCols=[*NUMERIC_MODEL_FEATURES, *categorical_vectors],
             outputCol="features",
             handleInvalid="error",
         )
@@ -127,8 +230,16 @@ def train_model(
             maxBins=1024,
             seed=seed,
         )
-        model = Pipeline(stages=[assembler, classifier]).fit(weighted_training)
-        predictions = model.transform(validation)
+        model = Pipeline(
+            stages=[feature_engineering, *indexers, one_hot, assembler, classifier]
+        ).fit(weighted_training)
+        calibration_predictions = model.transform(calibration)
+        operating_points = threshold_diagnostics(calibration_predictions)
+        applied_threshold = float(operating_points["applied_threshold"])
+        classifier_model: Any = model.stages[-1]
+        classifier_model.setThresholds([1 - applied_threshold, applied_threshold])
+
+        predictions = model.transform(evaluation)
         metrics = evaluate(predictions)
 
         settings.model_path.parent.mkdir(parents=True, exist_ok=True)
@@ -138,14 +249,19 @@ def train_model(
             "model_version": settings.model_version,
             "trained_at": datetime.now(UTC).isoformat(),
             "algorithm": "Spark RandomForestClassifier",
-            "features": list(FEATURE_COLUMNS),
+            "raw_features": list(FEATURE_COLUMNS),
+            "numeric_model_features": list(NUMERIC_MODEL_FEATURES),
+            "categorical_strategy": "StringIndexer + one-hot encoding",
             "num_trees": num_trees,
             "max_depth": max_depth,
             "seed": seed,
             "fraud_class_weight": fraud_weight,
             "training_rows": training.count(),
-            "validation_rows": validation.count(),
+            "calibration_rows": calibration.count(),
+            "validation_rows": evaluation.count(),
+            "calibration_cutoff_unix_time": int(cutoff),
             "metrics": metrics,
+            "threshold_diagnostics": operating_points,
         }
         settings.model_metadata_path.parent.mkdir(parents=True, exist_ok=True)
         settings.model_metadata_path.write_text(

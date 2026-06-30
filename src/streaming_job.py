@@ -63,6 +63,10 @@ def create_spark_session() -> SparkSession:
         SparkSession.builder.appName("CardShieldStreamingScorer")
         .config("spark.sql.session.timeZone", "UTC")
         .config("spark.jars.packages", SPARK_KAFKA_PACKAGE)
+        .config(
+            "spark.jars.ivy",
+            os.getenv("CARDSHIELD_SPARK_IVY_DIR", str(Path.home() / ".ivy2")),
+        )
         .config("spark.pyspark.python", sys.executable)
         .config("spark.pyspark.driver.python", sys.executable)
         .config("spark.driver.host", "127.0.0.1")
@@ -111,6 +115,17 @@ def write_prediction_batch(
             prediction = int(payload.pop("prediction"))
             fraud_probability = float(payload.pop("fraud_probability"))
             transaction = TransactionEvent.from_mapping(payload)
+            repository.record_pipeline_stage(
+                transaction.trans_num,
+                "MODEL_SCORED",
+                detail="Spark ML pipeline produced a fraud decision",
+                amount=transaction.amt,
+                merchant=transaction.merchant,
+                category=transaction.category,
+                fraud_probability=fraud_probability,
+                prediction=prediction,
+                model_version=settings.model_version,
+            )
             repository.write_scored(
                 ScoredTransaction(
                     transaction=transaction,
@@ -119,6 +134,17 @@ def write_prediction_batch(
                     model_version=settings.model_version,
                     scored_at=scored_at,
                 )
+            )
+            repository.record_pipeline_stage(
+                transaction.trans_num,
+                "CASSANDRA_PERSISTED",
+                detail="Prediction written to the operational query tables",
+                amount=transaction.amt,
+                merchant=transaction.merchant,
+                category=transaction.category,
+                fraud_probability=fraud_probability,
+                prediction=prediction,
+                model_version=settings.model_version,
             )
             count += 1
         LOGGER.info("Persisted scoring batch", extra={"transactions": count})
@@ -139,7 +165,7 @@ def run_stream(settings: Settings) -> None:
             ",".join(settings.kafka_bootstrap_servers),
         )
         .option("subscribe", settings.kafka_input_topic)
-        .option("startingOffsets", "latest")
+        .option("startingOffsets", settings.kafka_starting_offsets)
         .option("failOnDataLoss", "false")
         .load()
     )

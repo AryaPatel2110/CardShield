@@ -1,4 +1,4 @@
-.PHONY: install preprocess train migrate infrastructure score produce api web up down test lint
+.PHONY: install preprocess train migrate infrastructure score produce api web up down demo-check test lint
 
 install:
 	python -m pip install -e ".[training,web,dev]"
@@ -33,10 +33,15 @@ up:
 down:
 	docker compose --profile demo down
 
+demo-check:
+	python scripts/demo_check.py
+
 test:
 	pytest
+	cd web && npm test
 
 lint:
 	ruff check src tests
 	mypy
 	cd web && npm run lint
+	cd web && npm run build

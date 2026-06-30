@@ -142,11 +142,24 @@ Open [http://localhost:5173](http://localhost:5173). The website includes:
 
 - `/` — the CardShield landing page;
 - `/dashboard` — live Cassandra metrics and recent model decisions;
-- `/simulate` — a form that scores a transaction with the saved Spark model.
+- `/simulate` — held-out presets, synchronous inference, and a traced live
+  Kafka-to-Spark transaction path;
+- `/system` — runtime architecture, component health, model metrics, and
+  documented tradeoffs.
 
 The first API startup can take several seconds while Spark loads the model.
 Each simulator result is written to Cassandra when storage is available, so it
 will immediately become part of the dashboard.
+
+Before a live presentation, run:
+
+```bash
+make demo-check
+```
+
+This fails fast when the trained model, release metrics, encoders, replay data,
+or Docker command are missing. See [docs/DEMO.md](docs/DEMO.md) for the
+three-minute presentation flow.
 
 ## Run the containerized stack
 
@@ -177,6 +190,7 @@ CSV.
 | `make web` | Start the React development server |
 | `make test` | Run unit tests |
 | `make lint` | Run Ruff and strict MyPy |
+| `make demo-check` | Verify that local demo artifacts are ready |
 
 ## Package structure
 

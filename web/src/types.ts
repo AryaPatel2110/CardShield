@@ -17,6 +17,7 @@ export interface DashboardData {
     fraud_rate: number
     amount_at_risk: number
     average_probability: number
+    transactions_per_minute: number
   }
   category_risk: Array<{
     category: string
@@ -26,6 +27,23 @@ export interface DashboardData {
   }>
   recent_transactions: Transaction[]
   generated_at: string
+  window: {
+    transactions: number
+    maximum_transactions: number
+    days: number
+    started_at: string | null
+  }
+}
+
+export interface HealthData {
+  status: 'ok' | 'degraded'
+  components: Record<string, {
+    status: 'ready' | 'unavailable'
+    detail: string
+  }>
+  model_version: string
+  uptime_seconds: number
+  checked_at: string
 }
 
 export interface PredictionInput {
@@ -53,9 +71,85 @@ export interface PredictionResult {
   stored: boolean
 }
 
+export type PipelineStageName =
+  | 'API_ACCEPTED'
+  | 'KAFKA_PUBLISHED'
+  | 'MODEL_SCORED'
+  | 'CASSANDRA_PERSISTED'
+
+export interface PipelineStage {
+  trans_num: string
+  occurred_at: string
+  stage: PipelineStageName
+  detail: string
+  amt: number | null
+  merchant: string | null
+  category: string | null
+  fraud_probability: number | null
+  is_fraud_prediction: number | null
+  model_version: string | null
+}
+
+export interface PipelineSubmission {
+  transaction_id: string
+  status: 'processing'
+  poll_url: string
+}
+
+export interface PipelineStatus {
+  transaction_id: string
+  status: 'processing' | 'complete'
+  stages: PipelineStage[]
+  latency_ms: number | null
+  prediction: PredictionResult | null
+}
+
 export interface SimulatorOptions {
   merchant: string[]
   category: string[]
   gender: string[]
   job: string[]
+}
+
+export interface DemoPreset {
+  id: string
+  name: string
+  description: string
+  expected_decision: number
+  expected_probability: number
+  input: PredictionInput
+}
+
+export interface ModelReport {
+  available: boolean
+  model_version: string
+  message?: string
+  algorithm?: string
+  trained_at?: string
+  training_rows?: number
+  validation_rows?: number
+  num_trees?: number
+  max_depth?: number
+  metrics?: {
+    area_under_pr: number
+    area_under_roc: number
+    fraud_precision: number
+    fraud_recall: number
+    fraud_f1: number
+    weighted_f1: number
+    accuracy: number
+    confusion_matrix: Record<string, number>
+  }
+  warnings?: string[]
+  threshold_diagnostics?: {
+    applied_threshold: number
+    selected_on_calibration: {
+      threshold: number
+      fraud_precision: number
+      fraud_recall: number
+      fraud_f1: number
+    }
+    selection_policy: string
+    note: string
+  }
 }

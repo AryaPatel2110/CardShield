@@ -33,6 +33,15 @@ class SettingsTests(unittest.TestCase):
             with self.assertRaises(ConfigurationError):
                 Settings.from_env()
 
+    def test_starting_offsets_must_be_a_supported_kafka_value(self) -> None:
+        with patch.dict(
+            os.environ,
+            {"CARDSHIELD_KAFKA_STARTING_OFFSETS": "yesterday"},
+            clear=True,
+        ):
+            with self.assertRaises(ConfigurationError):
+                Settings.from_env()
+
 
 if __name__ == "__main__":
     unittest.main()

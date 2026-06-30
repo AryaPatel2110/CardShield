@@ -1,7 +1,12 @@
 import type {
   DashboardData,
+  DemoPreset,
+  HealthData,
+  ModelReport,
   PredictionInput,
   PredictionResult,
+  PipelineStatus,
+  PipelineSubmission,
   SimulatorOptions,
 } from './types'
 
@@ -21,9 +26,22 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const getDashboard = () => request<DashboardData>('/api/dashboard')
+export const getHealth = () => request<HealthData>('/api/health')
+export const getModelReport = () => request<ModelReport>('/api/model')
 export const getOptions = () => request<SimulatorOptions>('/api/options')
+export const getPresets = () =>
+  request<{ presets: DemoPreset[] }>('/api/presets').then((result) => result.presets)
 export const predictTransaction = (input: PredictionInput) =>
   request<PredictionResult>('/api/predict', {
     method: 'POST',
     body: JSON.stringify(input),
   })
+
+export const submitPipelineTransaction = (input: PredictionInput) =>
+  request<PipelineSubmission>('/api/pipeline', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  })
+
+export const getPipelineStatus = (transactionId: string) =>
+  request<PipelineStatus>(`/api/pipeline/${transactionId}`)
