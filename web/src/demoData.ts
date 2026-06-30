@@ -31,7 +31,7 @@ export const demoDashboard: DashboardData = {
     is_fraud: null,
     is_fraud_prediction: Number(prediction),
     fraud_probability: Number(probability),
-    model_version: 'demo-preview',
+    model_version: 'demo preview',
   })),
   generated_at: new Date(now).toISOString(),
   window: {

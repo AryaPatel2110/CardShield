@@ -151,15 +151,15 @@ def _load_demo_presets(settings: Settings, scorer: ModelScorer) -> list[dict[str
         {
             "id": "routine",
             "name": "Routine purchase",
-            "description": "A low-risk legitimate sample from the held-out replay period.",
+            "description": "A low risk legitimate sample from the held out replay period.",
             "expected_decision": safest.prediction,
             "expected_probability": safest.fraud_probability,
             "input": _preset_input(safest.transaction),
         },
         {
             "id": "suspicious",
-            "name": "High-risk pattern",
-            "description": "The highest-scoring known fraud among sampled held-out events.",
+            "name": "High risk pattern",
+            "description": "The highest scoring known fraud among sampled held out events.",
             "expected_decision": riskiest.prediction,
             "expected_probability": riskiest.fraud_probability,
             "input": _preset_input(riskiest.transaction),

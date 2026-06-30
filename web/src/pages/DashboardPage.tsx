@@ -81,14 +81,14 @@ export default function DashboardPage() {
           <p>Live decisions from the CardShield scoring pipeline.</p>
         </div>
         <button className="refresh-button" onClick={() => void load()} disabled={loading}>
-          <span className={loading ? 'spinning' : ''}>↻</span> Refresh
+          <span className={`refresh-symbol ${loading ? 'spinning' : ''}`} aria-hidden="true" /> Refresh
         </button>
       </div>
 
       {error && (
         <div className="error-banner preview-banner">
           <strong>Preview data</strong>
-          <span>Live services are unavailable ({error}). Showing a clearly labeled recruiter-demo preview.</span>
+          <span>Live services are unavailable ({error}). Showing a clearly labeled demonstration preview.</span>
         </div>
       )}
 
@@ -109,7 +109,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="metric-grid">
-        <Metric label="Transactions analyzed" value={number.format(data?.metrics.total_transactions ?? 0)} trend={`Latest ${data?.window.maximum_transactions ?? 250} · 7-day window`} />
+        <Metric label="Transactions analyzed" value={number.format(data?.metrics.total_transactions ?? 0)} trend={`Latest ${data?.window.maximum_transactions ?? 250} across seven days`} />
         <Metric label="Fraud detected" value={number.format(data?.metrics.fraud_transactions ?? 0)} trend="Model decisions" danger />
         <Metric label="Throughput" value={`${(data?.metrics.transactions_per_minute ?? 0).toFixed(1)}/min`} trend="Across observed window" />
         <Metric label="Amount at risk" value={money.format(data?.metrics.amount_at_risk ?? 0)} trend="Flagged transaction value" danger />
@@ -138,7 +138,7 @@ export default function DashboardPage() {
 
         <article className="panel category-panel">
           <div className="panel-heading">
-            <div><span>Signal concentration</span><h2>Highest-risk categories</h2></div>
+            <div><span>Signal concentration</span><h2>Categories with highest risk</h2></div>
           </div>
           <div className="bar-list">
             {(data?.category_risk ?? []).length === 0 && <p className="empty-state">No transaction data yet.</p>}
@@ -155,7 +155,7 @@ export default function DashboardPage() {
       <article className="panel transaction-panel">
         <div className="panel-heading">
           <div><span>Latest decisions</span><h2>Recent transactions</h2></div>
-          <small>Auto-refreshes every 5 seconds · latest 250 over 7 days</small>
+          <small>Refreshes every 5 seconds with the latest 250 over seven days</small>
         </div>
         <div className="table-scroll">
           <table>
@@ -189,7 +189,7 @@ export default function DashboardPage() {
       {selected && (
         <div className="inspector-backdrop" role="presentation" onClick={closeInspector}>
           <aside className="transaction-inspector" role="dialog" aria-modal="true" aria-label="Transaction details" onClick={(event) => event.stopPropagation()}>
-            <button className="inspector-close" onClick={closeInspector} aria-label="Close transaction details">×</button>
+            <button className="inspector-close" onClick={closeInspector} aria-label="Close transaction details"><i aria-hidden="true" /></button>
             <div className="result-kicker"><i /> Decision audit</div>
             <h2>{selected.is_fraud_prediction ? 'Flagged transaction' : 'Approved transaction'}</h2>
             <span className={`status-pill ${selected.is_fraud_prediction ? 'blocked' : 'approved'}`}>
@@ -224,7 +224,7 @@ export default function DashboardPage() {
 function Metric({ label, value, trend, danger = false }: { label: string; value: string; trend: string; danger?: boolean }) {
   return (
     <article className="metric-card">
-      <div className={`metric-icon ${danger ? 'danger' : ''}`}>{danger ? '!' : '⌁'}</div>
+      <div className={`metric-icon metric-shape ${danger ? 'danger' : ''}`} aria-hidden="true"><i /></div>
       <span>{label}</span>
       <strong>{value}</strong>
       <small>{trend}</small>

@@ -20,8 +20,8 @@ export function decisionSignals(
     {
       label: 'Transaction amount',
       detail: form.amount >= 500
-        ? `$${form.amount.toFixed(2)} is a high-value payment`
-        : `$${form.amount.toFixed(2)} is below the high-value demo threshold`,
+        ? `$${form.amount.toFixed(2)} is a high value payment`
+        : `$${form.amount.toFixed(2)} is below the high value demo threshold`,
       risk: form.amount >= 500,
     },
     {

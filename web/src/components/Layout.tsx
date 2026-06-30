@@ -1,10 +1,32 @@
-import { type PointerEvent, type ReactNode, useEffect, useRef } from 'react'
+import { type PointerEvent, type ReactNode, useEffect, useId, useRef } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 
 function ShieldMark() {
+  const gradientId = useId()
+
   return (
     <span className="shield-mark" aria-hidden="true">
-      <span />
+      <svg viewBox="0 0 40 44" role="presentation">
+        <defs>
+          <linearGradient id={gradientId} x1="5" y1="3" x2="35" y2="40">
+            <stop offset="0" stopColor="#7bddad" />
+            <stop offset="1" stopColor="#35b77c" />
+          </linearGradient>
+        </defs>
+        <path
+          className="shield-mark-body"
+          fill={`url(#${gradientId})`}
+          d="M20 2 36 8v13.8c0 9.7-5.8 16.1-16 20.2C9.8 37.9 4 31.5 4 21.8V8l16-6Z"
+        />
+        <path
+          className="shield-mark-chevron-back"
+          d="m10.8 29.7 9.2-9.2 9.2 9.2"
+        />
+        <path
+          className="shield-mark-chevron-front"
+          d="m10.8 24.1 9.2-9.2 9.2 9.2"
+        />
+      </svg>
     </span>
   )
 }
@@ -17,7 +39,7 @@ export default function Layout({ children }: { children: ReactNode }) {
     let observer: IntersectionObserver | undefined
     const frame = window.requestAnimationFrame(() => {
       const elements = document.querySelectorAll(
-        '.flow-card, .metric-card, .panel, .proof-strip, .final-cta',
+        '.flow-card, .metric-card, .panel, .proof-strip, .capability-heading, .capability-layout, .system-heading, .merchant-benefits-heading, .merchant-benefit-grid article, .final-cta, footer > span',
       )
       const nextObserver = new IntersectionObserver(
         (entries) => entries.forEach((entry) => {
@@ -57,7 +79,6 @@ export default function Layout({ children }: { children: ReactNode }) {
         <nav aria-label="Main navigation">
           <NavLink to="/">Home</NavLink>
           <NavLink to="/dashboard">Dashboard</NavLink>
-          <NavLink to="/system">System</NavLink>
           <NavLink to="/simulate" className="nav-cta">Test transaction</NavLink>
         </nav>
       </header>
@@ -65,7 +86,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       <footer>
         <div className="brand footer-brand"><ShieldMark /> CardShield</div>
         <p>Streaming intelligence for safer payments.</p>
-        <span>Kafka · Spark · Cassandra</span>
+        <span>Kafka&nbsp;&nbsp; Spark&nbsp;&nbsp; Cassandra</span>
       </footer>
     </div>
   )

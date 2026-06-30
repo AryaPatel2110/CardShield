@@ -130,7 +130,7 @@ export default function SimulatorPage() {
           </p>
           {presets.length > 0 && (
             <div className="preset-section">
-              <div className="preset-heading"><span>Demo scenarios</span><small>Held-out data · pre-scored</small></div>
+              <div className="preset-heading"><span>Demo scenarios</span><small>Held out data, scored in advance</small></div>
               <div className="preset-grid">
                 {presets.map((preset) => (
                   <button
@@ -189,18 +189,18 @@ export default function SimulatorPage() {
 
           {error && <div className="form-error">{error}</div>}
           <button className="button button-primary submit-button" type="submit" disabled={loading || !options}>
-            {loading ? <><span className="loader" /> Analyzing transaction…</> : <>Analyze transaction <span>→</span></>}
+            {loading ? <><span className="loader" /> Analyzing transaction…</> : <>Analyze transaction <span className="button-direction" aria-hidden="true" /></>}
           </button>
-          <p className="form-footnote"><span>⌁</span> Scored with the same model used by the streaming pipeline.</p>
+          <p className="form-footnote"><span className="model-mark" aria-hidden="true" /> Scored with the same model used by the streaming pipeline.</p>
         </form>
 
         <aside className={`result-card ${result ? (result.is_fraud_prediction ? 'result-fraud' : 'result-safe') : ''}`}>
           {!result && stages.length === 0 && (
             <div className="result-placeholder">
-              <div className="scan-visual"><span /><i /><b>⌁</b></div>
+              <div className="scan-visual"><span /><i /><b className="scan-center" /></div>
               <h2>Ready to analyze</h2>
               <p>Your fraud decision and confidence score will appear here.</p>
-              <div className="placeholder-list"><span>✓ 11 model features</span><span>✓ Live Spark inference</span><span>✓ Cassandra audit trail</span></div>
+              <div className="placeholder-list"><span><i />11 model features</span><span><i />Live Spark inference</span><span><i />Cassandra audit trail</span></div>
             </div>
           )}
           {!result && stages.length > 0 && (
@@ -209,7 +209,7 @@ export default function SimulatorPage() {
           {result && (
             <div className="result-content">
               <div className="result-kicker"><i /> Analysis complete</div>
-              <div className="verdict-icon">{result.is_fraud_prediction ? '!' : '✓'}</div>
+              <div className={`verdict-icon verdict-shape ${result.is_fraud_prediction ? 'risk' : 'safe'}`} aria-hidden="true"><i /></div>
               <span className="verdict-label">Model decision</span>
               <h2>{result.is_fraud_prediction ? 'Review recommended' : 'Low risk detected'}</h2>
               <p>{result.is_fraud_prediction ? 'The model found a suspicious pattern that warrants human review.' : 'The model did not find a strong fraud pattern. This is a risk estimate, not a guarantee.'}</p>
@@ -225,10 +225,10 @@ export default function SimulatorPage() {
                 {latency !== null && <div><dt>Pipeline latency</dt><dd>{latency.toLocaleString()} ms</dd></div>}
               </dl>
               <div className="context-signals">
-                <div><strong>Decision context</strong><small>Derived indicators · not model attribution</small></div>
+                <div><strong>Decision context</strong><small>Derived indicators, not model attribution</small></div>
                 {decisionSignals(form, result).map((signal) => (
                   <span className={signal.risk ? 'risk' : ''} key={signal.label}>
-                    <i>{signal.risk ? '!' : '✓'}</i>
+                    <i className="signal-state" aria-hidden="true" />
                     <b>{signal.label}</b>
                     <small>{signal.detail}</small>
                   </span>
@@ -236,7 +236,7 @@ export default function SimulatorPage() {
               </div>
               {stages.length > 0 && <PipelineProgress stages={stages} compact />}
               <Link className="dashboard-payoff" to={`/dashboard?highlight=${result.trans_num}`}>
-                View on live dashboard <span>→</span>
+                View on live dashboard <span className="button-direction" aria-hidden="true" />
               </Link>
               <button className="reset-button" onClick={() => { setResult(null); setStages([]) }}>Test another transaction</button>
             </div>
@@ -265,7 +265,7 @@ function PipelineProgress({ stages, compact = false }: { stages: PipelineStage[]
           const isActive = !stage && completed.size === index
           return (
             <li className={stage ? 'complete' : isActive ? 'active' : ''} key={name}>
-              <span>{stage ? '✓' : index + 1}</span>
+              <span>{stage ? <i className="stage-complete-mark" aria-hidden="true" /> : index + 1}</span>
               <div>
                 <strong>{label}</strong>
                 <small>{stage?.detail ?? (isActive ? 'Waiting for service…' : 'Pending')}</small>

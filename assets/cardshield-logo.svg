@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="title description">
+  <title id="title">CardShield logo</title>
+  <desc id="description">A green payment security shield with two upward chevrons</desc>
+  <defs>
+    <linearGradient id="backdrop" x1="18" y1="12" x2="146" y2="151" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#effaf4"/>
+      <stop offset="1" stop-color="#e7e5ff"/>
+    </linearGradient>
+    <linearGradient id="shield" x1="45" y1="35" x2="118" y2="130" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7bddad"/>
+      <stop offset="1" stop-color="#35b77c"/>
+    </linearGradient>
+  </defs>
+  <rect x="6" y="6" width="148" height="148" rx="38" fill="url(#backdrop)"/>
+  <path fill="url(#shield)" d="M80 28 124 44v37.8c0 26.7-15.9 44.2-44 55.2-28.1-11-44-28.5-44-55.2V44l44-16Z"/>
+  <path fill="none" stroke="#b9efd2" stroke-linecap="round" stroke-linejoin="round" stroke-width="12" opacity=".76" d="m54.7 101.4 25.3-25.3 25.3 25.3"/>
+  <path fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="12" d="m54.7 86.2 25.3-25.3 25.3 25.3"/>
+</svg>
