@@ -1,0 +1,195 @@
+{
+  "_snapshot": {
+    "exported_at": "2026-06-30T16:51:58.945386+00:00",
+    "mode": "snapshot",
+    "schema_version": 1,
+    "source": "complete held out replay dataset"
+  },
+  "category_risk": [
+    {
+      "category": "shopping_net",
+      "fraud_count": 2863,
+      "fraud_rate": 0.06852725053256421,
+      "transactions": 41779
+    },
+    {
+      "category": "misc_net",
+      "fraud_count": 957,
+      "fraud_rate": 0.03496912339679176,
+      "transactions": 27367
+    },
+    {
+      "category": "shopping_pos",
+      "fraud_count": 623,
+      "fraud_rate": 0.01251230141993533,
+      "transactions": 49791
+    },
+    {
+      "category": "grocery_pos",
+      "fraud_count": 513,
+      "fraud_rate": 0.00976157403002683,
+      "transactions": 52553
+    },
+    {
+      "category": "entertainment",
+      "fraud_count": 47,
+      "fraud_rate": 0.0011719529224017554,
+      "transactions": 40104
+    },
+    {
+      "category": "misc_pos",
+      "fraud_count": 25,
+      "fraud_rate": 0.00072308671255857,
+      "transactions": 34574
+    }
+  ],
+  "generated_at": "2026-06-30T16:51:58.945386+00:00",
+  "metrics": {
+    "amount_at_risk": 3382010.83,
+    "average_probability": 0.3614094481384493,
+    "fraud_rate": 0.009051337096626172,
+    "fraud_transactions": 5030,
+    "total_transactions": 555719,
+    "transactions_per_minute": 1.9945040855069973
+  },
+  "recent_transactions": [
+    {
+      "amt": 38.13,
+      "category": "entertainment",
+      "fraud_probability": 0.39911893132535275,
+      "inserted_at": "2020-12-31 23:59:34",
+      "is_fraud": 0,
+      "is_fraud_prediction": 0,
+      "merchant": "fraud_Dare-Marvin",
+      "model_version": "local-v1",
+      "trans_num": "1765bb45b3aa3224b4cdcb6e7a96cee3"
+    },
+    {
+      "amt": 7.99,
+      "category": "travel",
+      "fraud_probability": 0.4421191091208256,
+      "inserted_at": "2020-12-31 23:59:24",
+      "is_fraud": 0,
+      "is_fraud_prediction": 0,
+      "merchant": "fraud_Breitenberg LLC",
+      "model_version": "local-v1",
+      "trans_num": "14392d723bb7737606b2700ac791b7aa"
+    },
+    {
+      "amt": 86.88,
+      "category": "kids_pets",
+      "fraud_probability": 0.4035988326478514,
+      "inserted_at": "2020-12-31 23:59:15",
+      "is_fraud": 0,
+      "is_fraud_prediction": 0,
+      "merchant": "fraud_Rau-Robel",
+      "model_version": "local-v1",
+      "trans_num": "6c5b7c8add471975aa0fec023b2e8408"
+    },
+    {
+      "amt": 111.84,
+      "category": "kids_pets",
+      "fraud_probability": 0.39355845654609856,
+      "inserted_at": "2020-12-31 23:59:09",
+      "is_fraud": 0,
+      "is_fraud_prediction": 0,
+      "merchant": "fraud_Hoppe-Parisian",
+      "model_version": "local-v1",
+      "trans_num": "2090647dac2c89a1d86c514c427f5b91"
+    },
+    {
+      "amt": 43.77,
+      "category": "health_fitness",
+      "fraud_probability": 0.42381095221954745,
+      "inserted_at": "2020-12-31 23:59:07",
+      "is_fraud": 0,
+      "is_fraud_prediction": 0,
+      "merchant": "fraud_Reilly and Sons",
+      "model_version": "local-v1",
+      "trans_num": "9b1f753c79894c9f4b71f04581835ada"
+    },
+    {
+      "amt": 17.0,
+      "category": "home",
+      "fraud_probability": 0.3806500834571747,
+      "inserted_at": "2020-12-31 23:58:34",
+      "is_fraud": 0,
+      "is_fraud_prediction": 0,
+      "merchant": "fraud_Prosacco, Kreiger and Kovacek",
+      "model_version": "local-v1",
+      "trans_num": "6d04313bfe4b661b8ca2b6a499a320fe"
+    },
+    {
+      "amt": 13.02,
+      "category": "kids_pets",
+      "fraud_probability": 0.42220651192081704,
+      "inserted_at": "2020-12-31 23:58:04",
+      "is_fraud": 0,
+      "is_fraud_prediction": 0,
+      "merchant": "fraud_Pouros, Walker and Spencer",
+      "model_version": "local-v1",
+      "trans_num": "bd7071fd5c9510a5594ee196368ac80e"
+    },
+    {
+      "amt": 12.68,
+      "category": "home",
+      "fraud_probability": 0.362162812201398,
+      "inserted_at": "2020-12-31 23:57:56",
+      "is_fraud": 0,
+      "is_fraud_prediction": 0,
+      "merchant": "fraud_Schmidt-Larkin",
+      "model_version": "local-v1",
+      "trans_num": "a8310343c189e4a5b6316050d2d6b014"
+    },
+    {
+      "amt": 29.56,
+      "category": "shopping_net",
+      "fraud_probability": 0.49720563828209113,
+      "inserted_at": "2020-12-31 23:57:50",
+      "is_fraud": 0,
+      "is_fraud_prediction": 0,
+      "merchant": "fraud_Heathcote, Yost and Kertzmann",
+      "model_version": "local-v1",
+      "trans_num": "9fc9f6f9be3182d519a61a119cf97199"
+    },
+    {
+      "amt": 46.71,
+      "category": "entertainment",
+      "fraud_probability": 0.40761736255127423,
+      "inserted_at": "2020-12-31 23:57:18",
+      "is_fraud": 0,
+      "is_fraud_prediction": 0,
+      "merchant": "fraud_Larkin, Stracke and Greenfelder",
+      "model_version": "local-v1",
+      "trans_num": "a7105564935ea3977dc61ff9ced3bf5e"
+    },
+    {
+      "amt": 25.49,
+      "category": "shopping_pos",
+      "fraud_probability": 0.46193940025366936,
+      "inserted_at": "2020-12-31 23:56:57",
+      "is_fraud": 0,
+      "is_fraud_prediction": 0,
+      "merchant": "fraud_Baumbach, Hodkiewicz and Walsh",
+      "model_version": "local-v1",
+      "trans_num": "0f0c38fe781b317f733b845c0d6ba448"
+    },
+    {
+      "amt": 134.26,
+      "category": "home",
+      "fraud_probability": 0.3901591405081223,
+      "inserted_at": "2020-12-31 23:56:48",
+      "is_fraud": 0,
+      "is_fraud_prediction": 0,
+      "merchant": "fraud_Botsford and Sons",
+      "model_version": "local-v1",
+      "trans_num": "fc860b0d1f89b0b068c9c8db27b6bcc5"
+    }
+  ],
+  "window": {
+    "days": 193.49,
+    "maximum_transactions": 555719,
+    "started_at": "2020-06-21 12:14:25",
+    "transactions": 555719
+  }
+}

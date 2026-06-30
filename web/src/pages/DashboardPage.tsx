@@ -13,6 +13,7 @@ export default function DashboardPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [health, setHealth] = useState<HealthData | null>(null)
+  const [snapshotMode, setSnapshotMode] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
   const [selected, setSelected] = useState<Transaction | null>(null)
   const [trace, setTrace] = useState<PipelineStage[]>([])
@@ -29,6 +30,7 @@ export default function DashboardPage() {
       setError('')
       const dashboard = await getDashboard()
       setData(dashboard)
+      setSnapshotMode(Boolean(dashboard._snapshot))
       getHealth().then(setHealth).catch(() => setHealth(null))
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Unable to load dashboard')
@@ -40,9 +42,10 @@ export default function DashboardPage() {
 
   useEffect(() => {
     void load()
+    if (snapshotMode) return
     const timer = window.setInterval(() => void load(), 5_000)
     return () => window.clearInterval(timer)
-  }, [load])
+  }, [load, snapshotMode])
 
   useEffect(() => {
     if (!highlightedId || !data) return
@@ -95,7 +98,7 @@ export default function DashboardPage() {
       <div className="health-strip">
         <div>
           <span className={`health-dot ${health?.status === 'ok' ? '' : 'degraded'}`} />
-          <strong>{health?.status === 'ok' ? 'All systems operational' : 'System degraded'}</strong>
+          <strong>{health?._snapshot ? 'Analytics ready' : health?.status === 'ok' ? 'All systems operational' : 'System degraded'}</strong>
           <small>Model {health?.model_version ?? 'checking…'}</small>
         </div>
         <div className="component-health">
@@ -109,7 +112,11 @@ export default function DashboardPage() {
       </div>
 
       <div className="metric-grid">
-        <Metric label="Transactions analyzed" value={number.format(data?.metrics.total_transactions ?? 0)} trend={`Latest ${data?.window.maximum_transactions ?? 250} across seven days`} />
+        <Metric
+          label="Transactions analyzed"
+          value={number.format(data?.metrics.total_transactions ?? 0)}
+          trend={`${number.format(data?.window.maximum_transactions ?? 250)} across ${data?.window.days ?? 7} days`}
+        />
         <Metric label="Fraud detected" value={number.format(data?.metrics.fraud_transactions ?? 0)} trend="Model decisions" danger />
         <Metric label="Throughput" value={`${(data?.metrics.transactions_per_minute ?? 0).toFixed(1)}/min`} trend="Across observed window" />
         <Metric label="Amount at risk" value={money.format(data?.metrics.amount_at_risk ?? 0)} trend="Flagged transaction value" danger />
@@ -155,7 +162,11 @@ export default function DashboardPage() {
       <article className="panel transaction-panel">
         <div className="panel-heading">
           <div><span>Latest decisions</span><h2>Recent transactions</h2></div>
-          <small>Refreshes every 5 seconds with the latest 250 over seven days</small>
+          <small>
+            {data?._snapshot
+              ? `Complete held out analysis across ${data.window.days} days`
+              : `Refreshes every 5 seconds with the latest ${data?.window.maximum_transactions ?? 250} records`}
+          </small>
         </div>
         <div className="table-scroll">
           <table>

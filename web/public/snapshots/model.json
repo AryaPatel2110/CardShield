@@ -1,0 +1,153 @@
+{
+  "_snapshot": {
+    "exported_at": "2026-06-30T16:51:58.945386+00:00",
+    "mode": "snapshot",
+    "schema_version": 1,
+    "source": "complete held out replay dataset"
+  },
+  "algorithm": "Spark RandomForestClassifier",
+  "available": true,
+  "calibration_cutoff_unix_time": 1380747202,
+  "calibration_rows": 277502,
+  "categorical_strategy": "StringIndexer + one-hot encoding",
+  "fraud_class_weight": 171.75179856115108,
+  "holdout_run": {
+    "accuracy": 0.9921021235552501,
+    "actual_fraud": 2145,
+    "completed_at": "2026-06-30T16:51:58.945386+00:00",
+    "confusion_matrix": {
+      "actual_0_predicted_0": 549937,
+      "actual_0_predicted_1": 3637,
+      "actual_1_predicted_0": 752,
+      "actual_1_predicted_1": 1393
+    },
+    "duration_seconds": 17.28,
+    "fraud_f1": 0.3882926829268293,
+    "fraud_precision": 0.27693836978131214,
+    "fraud_recall": 0.6494172494172494,
+    "predicted_fraud": 5030,
+    "rows": 555719
+  },
+  "max_depth": 12,
+  "metrics": {
+    "accuracy": 0.992412397517046,
+    "area_under_pr": 0.45241172958035697,
+    "area_under_roc": 0.9322737107333527,
+    "confusion_matrix": {
+      "actual_0_predicted_0": 275488,
+      "actual_0_predicted_1": 1800,
+      "actual_1_predicted_0": 311,
+      "actual_1_predicted_1": 618
+    },
+    "fraud_f1": 0.36928592769644464,
+    "fraud_precision": 0.2555831265508685,
+    "fraud_recall": 0.6652314316469322,
+    "weighted_f1": 0.9940899551410055
+  },
+  "model_version": "local-v1",
+  "num_trees": 100,
+  "numeric_model_features": [
+    "amt",
+    "lat",
+    "long",
+    "city_pop",
+    "merch_lat",
+    "merch_long",
+    "distance_km",
+    "transaction_hour",
+    "transaction_day_of_week"
+  ],
+  "raw_features": [
+    "amt",
+    "lat",
+    "long",
+    "city_pop",
+    "unix_time",
+    "merch_lat",
+    "merch_long",
+    "merchant_label",
+    "category_label",
+    "gender_label",
+    "job_label"
+  ],
+  "seed": 42,
+  "threshold_diagnostics": {
+    "applied_threshold": 0.625,
+    "candidates": [
+      {
+        "fraud_f1": 0.010107317398073449,
+        "fraud_precision": 0.005079370392375087,
+        "fraud_recall": 0.9983552631578947,
+        "threshold": 0.3
+      },
+      {
+        "fraud_f1": 0.03409928729417547,
+        "fraud_precision": 0.017374154770848985,
+        "fraud_recall": 0.912828947368421,
+        "threshold": 0.4
+      },
+      {
+        "fraud_f1": 0.19073626719882364,
+        "fraud_precision": 0.10933172787477423,
+        "fraud_recall": 0.7467105263157895,
+        "threshold": 0.5
+      },
+      {
+        "fraud_f1": 0.26298701298701294,
+        "fraud_precision": 0.16025179856115107,
+        "fraud_recall": 0.7327302631578947,
+        "threshold": 0.55
+      },
+      {
+        "fraud_f1": 0.32469572045543776,
+        "fraud_precision": 0.21325425477050025,
+        "fraud_recall": 0.6800986842105263,
+        "threshold": 0.6
+      },
+      {
+        "fraud_f1": 0.4049111807732497,
+        "fraud_precision": 0.29670750382848393,
+        "fraud_recall": 0.6373355263157895,
+        "threshold": 0.625
+      },
+      {
+        "fraud_f1": 0.4806629834254144,
+        "fraud_precision": 0.4142857142857143,
+        "fraud_recall": 0.5723684210526315,
+        "threshold": 0.65
+      },
+      {
+        "fraud_f1": 0.49860724233983295,
+        "fraud_precision": 0.5724946695095949,
+        "fraud_recall": 0.44161184210526316,
+        "threshold": 0.675
+      },
+      {
+        "fraud_f1": 0.3846153846153846,
+        "fraud_precision": 0.7142857142857143,
+        "fraud_recall": 0.2631578947368421,
+        "threshold": 0.7
+      },
+      {
+        "fraud_f1": 0.202476329206118,
+        "fraud_precision": 0.8853503184713376,
+        "fraud_recall": 0.11430921052631579,
+        "threshold": 0.75
+      }
+    ],
+    "note": "Selected on the earlier half of the held-out period and evaluated on the later half. Production approval still requires explicit fraud-loss and false-decline costs.",
+    "selected_on_calibration": {
+      "fraud_f1": 0.4049111807732497,
+      "fraud_precision": 0.29670750382848393,
+      "fraud_recall": 0.6373355263157895,
+      "threshold": 0.625
+    },
+    "selection_policy": "maximum fraud F1 among candidates with at least 60% recall"
+  },
+  "trained_at": "2026-06-29T16:28:13.676366+00:00",
+  "training_rows": 1296675,
+  "validation_rows": 278217,
+  "warnings": [
+    "Accuracy is shown for completeness but is not a release metric for imbalanced fraud data."
+  ]
+}

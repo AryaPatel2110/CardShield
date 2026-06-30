@@ -1,0 +1,74 @@
+{
+  "_snapshot": {
+    "exported_at": "2026-06-30T16:51:58.945386+00:00",
+    "mode": "snapshot",
+    "schema_version": 1,
+    "source": "complete held out replay dataset"
+  },
+  "predictions": [
+    {
+      "input": {
+        "amount": 136.5,
+        "category": "home",
+        "city_population": 743,
+        "customer_latitude": 48.2777,
+        "customer_longitude": -112.8456,
+        "gender": "F",
+        "job": "Water engineer",
+        "merchant": "fraud_Eichmann-Kilback",
+        "merchant_latitude": 48.02024,
+        "merchant_longitude": -111.960719
+      },
+      "preset_id": "routine",
+      "result": {
+        "_snapshot": {
+          "exported_at": "2026-06-30T16:51:58.945386+00:00",
+          "mode": "snapshot",
+          "schema_version": 1,
+          "source": "complete held out replay dataset"
+        },
+        "amt": 136.5,
+        "category": "home",
+        "fraud_probability": 0.20022079783927788,
+        "inserted_at": "2026-06-30T16:51:58.945386+00:00",
+        "is_fraud_prediction": 0,
+        "merchant": "fraud_Eichmann-Kilback",
+        "model_version": "local-v1",
+        "stored": false,
+        "trans_num": "capture-routine"
+      }
+    },
+    {
+      "input": {
+        "amount": 1198.12,
+        "category": "shopping_net",
+        "city_population": 96942,
+        "customer_latitude": 42.3958,
+        "customer_longitude": -83.3772,
+        "gender": "M",
+        "job": "Horticultural consultant",
+        "merchant": "fraud_Kozey-Boehm",
+        "merchant_latitude": 42.978556,
+        "merchant_longitude": -83.069435
+      },
+      "preset_id": "suspicious",
+      "result": {
+        "_snapshot": {
+          "exported_at": "2026-06-30T16:51:58.945386+00:00",
+          "mode": "snapshot",
+          "schema_version": 1,
+          "source": "complete held out replay dataset"
+        },
+        "amt": 1198.12,
+        "category": "shopping_net",
+        "fraud_probability": 0.7923756775463042,
+        "inserted_at": "2026-06-30T16:51:58.945386+00:00",
+        "is_fraud_prediction": 1,
+        "merchant": "fraud_Kozey-Boehm",
+        "model_version": "local-v1",
+        "stored": false,
+        "trans_num": "capture-suspicious"
+      }
+    }
+  ]
+}

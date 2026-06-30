@@ -1,4 +1,4 @@
-.PHONY: install preprocess train migrate infrastructure score produce api web up down demo-check test lint
+.PHONY: install preprocess train migrate infrastructure score produce api web export-static static-build up down demo-check test lint
 
 install:
 	python -m pip install -e ".[training,web,dev]"

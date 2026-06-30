@@ -34,11 +34,13 @@ export default function SimulatorPage() {
   const [latency, setLatency] = useState<number | null>(null)
   const [presets, setPresets] = useState<DemoPreset[]>([])
   const [activePreset, setActivePreset] = useState('')
+  const staticMode = Boolean(options?._snapshot)
 
   useEffect(() => {
     getOptions()
       .then((values) => {
         setOptions(values)
+        if (values._snapshot) setLiveMode(false)
         setForm((current) => ({
           ...current,
           merchant: values.merchant[0] ?? '',
@@ -116,7 +118,13 @@ export default function SimulatorPage() {
       <div className="simulator-layout">
         <form className="simulator-form panel" onSubmit={(event) => void submit(event)}>
           <div className="mode-switch" role="group" aria-label="Scoring path">
-            <button type="button" className={liveMode ? 'active' : ''} onClick={() => setLiveMode(true)}>
+            <button
+              type="button"
+              className={liveMode ? 'active' : ''}
+              onClick={() => setLiveMode(true)}
+              disabled={staticMode}
+              title={staticMode ? 'Start the backend to use the Kafka pipeline' : undefined}
+            >
               Live pipeline
             </button>
             <button type="button" className={!liveMode ? 'active' : ''} onClick={() => setLiveMode(false)}>

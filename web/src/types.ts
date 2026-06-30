@@ -1,3 +1,10 @@
+export interface SnapshotMetadata {
+  mode: 'snapshot'
+  exported_at: string
+  source: string
+  schema_version: number
+}
+
 export interface Transaction {
   inserted_at: string
   trans_num: string
@@ -11,6 +18,7 @@ export interface Transaction {
 }
 
 export interface DashboardData {
+  _snapshot?: SnapshotMetadata
   metrics: {
     total_transactions: number
     fraud_transactions: number
@@ -36,6 +44,7 @@ export interface DashboardData {
 }
 
 export interface HealthData {
+  _snapshot?: SnapshotMetadata
   status: 'ok' | 'degraded'
   components: Record<string, {
     status: 'ready' | 'unavailable'
@@ -60,6 +69,7 @@ export interface PredictionInput {
 }
 
 export interface PredictionResult {
+  _snapshot?: SnapshotMetadata
   trans_num: string
   amt: number
   merchant: string
@@ -105,6 +115,7 @@ export interface PipelineStatus {
 }
 
 export interface SimulatorOptions {
+  _snapshot?: SnapshotMetadata
   merchant: string[]
   category: string[]
   gender: string[]
@@ -121,6 +132,7 @@ export interface DemoPreset {
 }
 
 export interface ModelReport {
+  _snapshot?: SnapshotMetadata
   available: boolean
   model_version: string
   message?: string

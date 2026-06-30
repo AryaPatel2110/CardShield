@@ -1,0 +1,14 @@
+{
+  "exported_at": "2026-06-30T16:51:58.945386+00:00",
+  "files": [
+    "dashboard.json",
+    "health.json",
+    "model.json",
+    "options.json",
+    "presets.json",
+    "predictions.json"
+  ],
+  "project": "CardShield",
+  "schema_version": 1,
+  "source": "complete held out replay dataset"
+}

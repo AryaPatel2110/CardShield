@@ -38,6 +38,7 @@ cardshield-migrate = "migrate:main"
 cardshield-produce = "producer:main"
 cardshield-score = "streaming_job:main"
 cardshield-api = "api:main"
+cardshield-export-static = "static_export:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
@@ -52,6 +53,7 @@ py-modules = [
     "producer",
     "schemas",
     "streaming_job",
+    "static_export",
     "training",
 ]
 
