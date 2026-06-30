@@ -19,6 +19,8 @@
   </p>
 
   <p>
+    <a href="https://cardshield-bwq.pages.dev/"><strong>View Live Project ↗</strong></a>
+    &nbsp;·&nbsp;
     <a href="#the-project-story"><strong>Project Story</strong></a>
     &nbsp;&middot;&nbsp;
     <a href="#architecture"><strong>Architecture</strong></a>
