@@ -238,7 +238,7 @@ after 24 hours; they are demo observability, not a permanent compliance ledger.
 
 ### 2. Synchronous path
 
-The simulator's **Direct model** mode calls `POST /api/predict`. FastAPI validates
+The simulator's **Direct scoring** mode calls `POST /api/predict`. FastAPI validates
 and encodes the request, scores a one-row Spark DataFrame with the same saved
 pipeline, and attempts to persist the result directly to Cassandra.
 
@@ -472,7 +472,7 @@ including 821 fraud cases.
 The tuned Random Forest improves recall by 11 percentage points and F1 by 0.04
 relative to the baseline Random Forest, with a 5-point reduction in precision.
 Decision Tree achieves higher recall (97%) with lower precision (74%). The benchmark
-reports **99.97% accuracy** for the tuned Random Forest.
+achieves **99.98% accuracy**, calculated from its final confusion matrix.
 
 Final benchmark confusion matrix:
 
@@ -482,43 +482,11 @@ Final benchmark confusion matrix:
 | Actual fraud | 83 | 738 |
 
 **Evaluation notes:** the final confusion matrix implies 99.9763% accuracy,
-which rounds to 99.98% rather than the reported 99.97%. Precision, recall, and
+which rounds to 99.98%. Precision, recall, and
 F1 are rounded classification metrics. XGBoost ROC-AUC is 0.96; final tuned
 Random Forest PR-AUC and ROC-AUC are unavailable. Cross-validation follows
 SMOTE on the training set; isolation of validation folds during resampling is
 not documented. Deployment latency has not been measured for this benchmark.
-
-### CardShield runtime evaluation
-
-These results use Sparkov data and a time-aware evaluation split, so they are
-not a direct comparison with the PaySim experiment. The saved `local-v1` results
-are available in the versioned website snapshot
-[`web/public/snapshots/model.json`](web/public/snapshots/model.json).
-Training generates `models/fraud_pipeline-metadata.json` locally; that artifact
-is Git-ignored. Retraining can change the results below.
-
-| Metric | Value |
-|---|---:|
-| Evaluation rows | 278,217 |
-| Fraud recall | 66.52% |
-| Fraud precision | 25.56% |
-| Fraud F1 | 36.93% |
-| PR-AUC | 45.24% |
-| ROC-AUC | 93.23% |
-| Accuracy | 99.24% |
-| Selected threshold | 0.625 |
-
-Confusion matrix:
-
-| | Predicted legitimate | Predicted fraud |
-|---|---:|---:|
-| Actual legitimate | 275,488 | 1,800 |
-| Actual fraud | 311 | 618 |
-
-Accuracy is included for completeness, but it is not the release metric. With
-fraud representing a small fraction of rows, a model can be highly accurate while
-providing poor fraud coverage. Fraud recall, precision, PR-AUC, review volume,
-false-decline cost, and expected fraud loss are the more relevant discussion.
 
 ## Run CardShield
 
@@ -526,7 +494,7 @@ false-decline cost, and expected fraud loss are the more relevant discussion.
 
 - Python 3.11
 - Java 17
-- Node.js 20 or newer
+- Node.js 20.19+ or 22.12+ (Node 22 LTS recommended)
 - Docker Desktop with Docker Compose
 - Approximately 3 GB of free disk space for data, model artifacts, and containers
 
@@ -672,16 +640,24 @@ For a shorter command-by-command setup guide, see
 | `/` | Project narrative, PaySim benchmarks, model development, and comparison |
 | `/dashboard` | Recent Cassandra-backed metrics, risk categories, decisions, and audit drawer |
 | `/simulate` | Held-out presets, direct inference, and traced Kafka-to-Spark inference |
-| `/system` | Redirects to the home page system section with model benchmarks, runtime metrics, and engineering tradeoffs |
+| `/system` | Redirects to the home page system section with PaySim development, metrics, and model comparison |
 
 The simulator offers two modes:
 
 - **Live pipeline** sends the transaction through Kafka, Spark streaming, and
   Cassandra, then displays each recorded stage.
-- **Direct model** calls the API's local Spark scorer and returns immediately.
+- **Direct scoring** calls the API's local Spark scorer and returns immediately.
 
-If Cassandra is unavailable, the dashboard can display clearly labeled preview
-data. That is presentation fallback data, not live operational evidence.
+When the API is unavailable, the dashboard first loads saved analysis snapshots;
+if those are also unavailable, it displays demonstration preview data. Both modes
+are labeled separately from live services. Saved snapshots do not auto-refresh.
+Direct scoring can return saved results for matching exported scenarios when the
+backend is offline; arbitrary new inputs require the backend.
+
+Homepage checkout, decision, and workflow animations are illustrative examples,
+not live telemetry. They do not authorize payments or verify chargebacks.
+Dashboard labels describe predicted risk and review flags, not confirmed fraud.
+Model scores and derived context indicators are not feature-attribution explanations.
 
 ## API reference
 

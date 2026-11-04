@@ -14,14 +14,13 @@ export default function BenchmarkResults() {
       </div>
       <p>
         Results below describe a synthetic PaySim benchmark. CardShield continues
-        to use Kafka, Spark ML, Cassandra, FastAPI, and React. The benchmark model
-        has not been retrained or deployed into this pipeline.
+        to use Kafka, Spark ML, Cassandra, FastAPI, and React.
       </p>
       <div className="model-metrics benchmark-metrics">
         <div className="primary"><span>Fraud recall</span><strong>90%</strong></div>
         <div className="primary"><span>Fraud precision</span><strong>92%</strong></div>
         <div><span>Fraud F1 score</span><strong>0.91</strong></div>
-        <div><span>Accuracy · reported</span><strong>99.97%</strong></div>
+        <div><span>Accuracy · calculated</span><strong>99.98%</strong></div>
       </div>
       <h3>Model development process</h3>
       <ol className="benchmark-process">
@@ -59,7 +58,7 @@ export default function BenchmarkResults() {
       </div>
       <details className="benchmark-notes">
         <summary>Evaluation notes and limits</summary>
-        <p>Reported accuracy is 99.97%; the final confusion matrix implies 99.9763% (99.98% rounded to two decimals). Precision, recall, and F1 are rounded classification metrics.</p>
+        <p>Accuracy is calculated from the final confusion matrix: 99.9763%, rounded to 99.98%. Precision, recall, and F1 are rounded classification metrics.</p>
         <p>XGBoost ROC AUC is 0.96. Final tuned Random Forest PR AUC and ROC AUC are unavailable. Cross-validation follows SMOTE on the training set; validation-fold isolation during resampling is not documented.</p>
         <p>Deployment latency has not been measured for the benchmark model. Drift monitoring, retraining, rule-based safeguards, temporal models, and SHAP/LIME explanations remain future directions.</p>
       </details>

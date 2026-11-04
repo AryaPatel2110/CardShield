@@ -128,13 +128,15 @@ export default function SimulatorPage() {
               Live pipeline
             </button>
             <button type="button" className={!liveMode ? 'active' : ''} onClick={() => setLiveMode(false)}>
-              Instant API
+              Direct scoring
             </button>
           </div>
           <p className="mode-description">
             {liveMode
               ? 'Publishes to Kafka, scores in Spark Structured Streaming, then persists to Cassandra.'
-              : 'Scores synchronously with the same Spark model for a faster inference check.'}
+              : staticMode
+                ? 'Returns saved results for exported demo scenarios. New inputs require the backend.'
+                : 'Scores synchronously with the same Spark model; matching saved scenarios are available if the API is offline.'}
           </p>
           {presets.length > 0 && (
             <div className="preset-section">
@@ -199,7 +201,7 @@ export default function SimulatorPage() {
           <button className="button button-primary submit-button" type="submit" disabled={loading || !options}>
             {loading ? <><span className="loader" /> Analyzing transaction…</> : <>Analyze transaction <span className="button-direction" aria-hidden="true" /></>}
           </button>
-          <p className="form-footnote"><span className="model-mark" aria-hidden="true" /> Scored with the same model used by the streaming pipeline.</p>
+          <p className="form-footnote"><span className="model-mark" aria-hidden="true" /> {staticMode ? 'Saved scenario results from the existing scoring pipeline.' : 'Uses the same model as the streaming pipeline, with saved scenario fallback when offline.'}</p>
         </form>
 
         <aside className={`result-card ${result ? (result.is_fraud_prediction ? 'result-fraud' : 'result-safe') : ''}`}>
@@ -208,7 +210,7 @@ export default function SimulatorPage() {
               <div className="scan-visual"><span /><i /><b className="scan-center" /></div>
               <h2>Ready to analyze</h2>
               <p>Your fraud decision and confidence score will appear here.</p>
-              <div className="placeholder-list"><span><i />11 model features</span><span><i />Live Spark inference</span><span><i />Cassandra audit trail</span></div>
+              <div className="placeholder-list"><span><i />Runtime input features</span><span><i />{staticMode ? 'Saved scenario analysis' : 'Spark inference'}</span><span><i />{staticMode ? 'Captured results' : 'Cassandra audit trail'}</span></div>
             </div>
           )}
           {!result && stages.length > 0 && (
@@ -216,7 +218,7 @@ export default function SimulatorPage() {
           )}
           {result && (
             <div className="result-content">
-              <div className="result-kicker"><i /> Analysis complete</div>
+              <div className="result-kicker"><i /> {result._snapshot ? 'Saved scenario result' : 'Analysis complete'}</div>
               <div className={`verdict-icon verdict-shape ${result.is_fraud_prediction ? 'risk' : 'safe'}`} aria-hidden="true"><i /></div>
               <span className="verdict-label">Model decision</span>
               <h2>{result.is_fraud_prediction ? 'Review recommended' : 'Low risk detected'}</h2>
@@ -229,7 +231,7 @@ export default function SimulatorPage() {
                 <div><dt>Transaction ID</dt><dd>#{result.trans_num.slice(0, 10)}</dd></div>
                 <div><dt>Amount</dt><dd>${result.amt.toFixed(2)}</dd></div>
                 <div><dt>Model version</dt><dd>{result.model_version}</dd></div>
-                <div><dt>Dashboard saved</dt><dd>{result.stored ? 'Yes' : 'No'}</dd></div>
+                <div><dt>Dashboard saved</dt><dd>{result._snapshot ? 'Captured result' : result.stored ? 'Yes' : 'No'}</dd></div>
                 {latency !== null && <div><dt>Pipeline latency</dt><dd>{latency.toLocaleString()} ms</dd></div>}
               </dl>
               <div className="context-signals">
@@ -244,7 +246,7 @@ export default function SimulatorPage() {
               </div>
               {stages.length > 0 && <PipelineProgress stages={stages} compact />}
               <Link className="dashboard-payoff" to={`/dashboard?highlight=${result.trans_num}`}>
-                View on live dashboard <span className="button-direction" aria-hidden="true" />
+                View on dashboard <span className="button-direction" aria-hidden="true" />
               </Link>
               <button className="reset-button" onClick={() => { setResult(null); setStages([]) }}>Test another transaction</button>
             </div>

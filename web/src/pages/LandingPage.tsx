@@ -122,7 +122,7 @@ export default function LandingPage() {
       <section className="hero sardine-hero page-width" ref={heroRef}>
         <div className="hero-copy">
           <div className="hero-kicker"><span /> Live payment intelligence</div>
-          <h1>Catch fraud faster.<br /><em>Explain every decision.</em></h1>
+          <h1>Catch fraud faster.<br /><em>Trace every decision.</em></h1>
           <p>
             CardShield turns each payment into an auditable risk decision through
             one visible system built with Kafka, Spark ML, Cassandra, FastAPI, and React.
@@ -166,7 +166,7 @@ export default function LandingPage() {
                 <h2 id="pipeline-title">From swipe to signal</h2>
               </div>
               <p>
-                Watch live scenarios move continuously through the same versioned
+                Watch illustrative scenarios move continuously through the same versioned
                 flow documented in the project README.
               </p>
             </div>
@@ -272,7 +272,7 @@ function MerchantBenefits() {
               <b>0.04</b>
             </div>
             <div className="merchant-route-line"><i /></div>
-            <strong className="merchant-verdict approved">Approved</strong>
+            <strong className="merchant-verdict approved">Low risk</strong>
           </div>
         </article>
 
@@ -284,7 +284,7 @@ function MerchantBenefits() {
             <div className="merchant-score-head"><span>Fraud probability</span><strong>0.87</strong></div>
             <div className="merchant-score-track"><i /><b /></div>
             <div className="merchant-transaction-row"><span>TXN 6de094e9</span><strong>Flagged</strong></div>
-            <div className="merchant-transaction-row"><span>TXN 29ba841c</span><strong className="safe">Approved</strong></div>
+            <div className="merchant-transaction-row"><span>TXN 29ba841c</span><strong className="safe">Low risk</strong></div>
           </div>
         </article>
 
@@ -295,10 +295,10 @@ function MerchantBenefits() {
           <div className="merchant-card-visual audit-visual" aria-hidden="true">
             <div className="merchant-audit-title"><span>Decision trace</span><strong>Complete</strong></div>
             <ol>
-              <li><i />API accepted<small>12 ms</small></li>
-              <li><i />Kafka published<small>31 ms</small></li>
-              <li><i />Model scored<small>84 ms</small></li>
-              <li><i />Decision persisted<small>109 ms</small></li>
+              <li><i />API accepted<small>Step 1</small></li>
+              <li><i />Kafka published<small>Step 2</small></li>
+              <li><i />Model scored<small>Step 3</small></li>
+              <li><i />Decision persisted<small>Step 4</small></li>
             </ol>
           </div>
         </article>
@@ -312,7 +312,7 @@ function HeroCheckoutPreview() {
     <div
       className="hero-checkout-preview"
       role="img"
-      aria-label="A CardShield checkout sending a payment through live fraud scoring"
+      aria-label="Illustrative CardShield checkout and risk scoring example"
     >
       <div className="hero-flow-lines" aria-hidden="true">
         <i /><i /><i />
@@ -376,15 +376,15 @@ function HeroCheckoutPreview() {
 
       <div className="hero-risk-chip">
         <i aria-hidden="true" />
-        <span><strong>CardShield</strong><small>Live risk score</small></span>
+        <span><strong>CardShield</strong><small>Example risk score</small></span>
         <b>0.04</b>
         <em>Low</em>
       </div>
 
       <div className="hero-insight-card">
         <div className="hero-insight-metrics">
-          <span><small>Total chargebacks</small><strong>114</strong></span>
-          <span><small>Chargeback rate</small><strong>0.07%</strong></span>
+          <span><small>Example chargebacks</small><strong>114</strong></span>
+          <span><small>Example chargeback rate</small><strong>0.07%</strong></span>
           <em>0.14%</em>
         </div>
         <svg viewBox="0 0 420 116" aria-hidden="true">
@@ -413,7 +413,7 @@ function CapabilityDisplay({ capability }: { capability: CapabilityId }) {
   if (capability === 'operations') {
     return (
       <div className="capability-display operations-display">
-        <div className="display-topbar"><span>Recent decisions</span><small>Live view</small></div>
+        <div className="display-topbar"><span>Recent decisions</span><small>Example view</small></div>
         <div className="operations-summary">
           <span><small>Analyzed</small><strong>248</strong></span>
           <span><small>Flagged</small><strong>7</strong></span>
@@ -421,7 +421,7 @@ function CapabilityDisplay({ capability }: { capability: CapabilityId }) {
         </div>
         <div className="operations-table">
           <div><span>Schmitt Inc</span><b>94.7%</b><strong>Flagged</strong></div>
-          <div><span>Hills Witting</span><b>3.1%</b><strong>Approved</strong></div>
+          <div><span>Hills Witting</span><b>3.1%</b><strong>Low risk</strong></div>
           <div><span>Pacocha Bauch</span><b>88.2%</b><strong>Flagged</strong></div>
         </div>
       </div>
@@ -435,7 +435,7 @@ function DecisionCaseDisplay() {
   return (
     <div className="capability-display decision-case-display">
       <div className="display-topbar">
-        <span>Decision replay</span>
+        <span>Example decision</span>
         <small>TXN 6de094e9</small>
       </div>
 
@@ -447,7 +447,7 @@ function DecisionCaseDisplay() {
         <small>shopping net</small>
       </div>
 
-      <div className="decision-signal-list" aria-label="Recorded transaction context">
+      <div className="decision-signal-list" aria-label="Illustrative transaction context">
         <div className="signal-distance">
           <span><strong>Merchant distance</strong><small>711 miles from customer</small></span>
           <b>High</b><i><em /></i>
@@ -469,7 +469,7 @@ function DecisionCaseDisplay() {
         </div>
         <div className="decision-score-track">
           <i />
-          <b><span>Threshold</span>0.625</b>
+          <b><span>Example threshold</span>0.625</b>
         </div>
         <div className="decision-verdict">
           <span><i />Decision persisted</span>
@@ -509,11 +509,11 @@ function LivePipelineAnimation() {
       <div className="live-pipeline-header">
         <div className="live-pipeline-brand">
           <i aria-hidden="true"><span /></i>
-          <span><strong>CardShield</strong><small>Live decision pipeline</small></span>
+          <span><strong>CardShield</strong><small>Illustrative decision pipeline</small></span>
         </div>
         <div className="live-pipeline-step">
           <strong>{step === 0 ? 'Overview' : `Step ${step} / 7`}</strong>
-          <small>Sparkov schema v1</small>
+          <small>Runtime schema v1</small>
         </div>
       </div>
 

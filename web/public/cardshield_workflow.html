@@ -227,11 +227,11 @@
       <div class="tt">
         <h1>CardShield Decision Workflow</h1>
         <span class="sep"></span>
-        <span class="ver">Version 5.0</span>
-        <span class="live"><span class="d"></span>Live</span>
+        <span class="ver">Illustrative example</span>
+        <span class="live"><span class="d"></span>Demo</span>
       </div>
       <div class="acts">
-        <button class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 4v4h4"/><path d="M12 8v4l3 2"/></svg>Version History</button>
+        <button class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 4v4h4"/><path d="M12 8v4l3 2"/></svg>Workflow notes</button>
         <button class="btn" id="testBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v6l-4 9a1 1 0 0 0 1 1.4h14A1 1 0 0 0 20 18l-4-9V3"/><path d="M8 3h8"/></svg>Test</button>
         <button class="btn save">Save</button>
         <button class="kebab"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button>
@@ -305,9 +305,9 @@
     {id:'schema', x:405, y:36,  w:300, h:66, t:'Schema v1 Valid?',            s:'Splitter block',      type:'splitter', ic:'branch'},
     {id:'dlq',    x:812, y:150, w:218, h:60, t:'Route to DLQ',                s:'transactions.dlq.v1', type:'warn',     ic:'alert'},
     {id:'kafka',  x:300, y:212, w:300, h:66, t:'Connected to Kafka',          s:'API Connector block', type:'connector',ic:'cloud'},
-    {id:'model',  x:300, y:372, w:300, h:66, t:'Spark ML Model',              s:'RandomForest · local-v1', type:'model', ic:'model'},
-    {id:'prob',   x:300, y:532, w:300, h:66, t:'Fraud Probability ≥ 0.625?',  s:'Splitter block',      type:'splitter', ic:'branch'},
-    {id:'fraud',  x:96,  y:726, w:282, h:66, t:'Flag as Fraud',               s:'fraud_alerts_by_day', type:'fraud',    ic:'shield'},
+    {id:'model',  x:300, y:372, w:300, h:66, t:'Spark ML Model',              s:'RandomForest · runtime example', type:'model', ic:'model'},
+    {id:'prob',   x:300, y:532, w:300, h:66, t:'Risk ≥ example threshold?',  s:'Splitter block',      type:'splitter', ic:'branch'},
+    {id:'fraud',  x:96,  y:726, w:282, h:66, t:'Flag for Review',               s:'fraud_alerts_by_day', type:'fraud',    ic:'shield'},
     {id:'approve',x:498, y:726, w:300, h:66, t:'Connected to Cassandra',      s:'transactions_by_day', type:'approve',  ic:'cloud'}
   ];
   var E=[
@@ -409,23 +409,18 @@
   var tlab=token.querySelector('.lab');
   var toast=document.createElement('div'); toast.className='toast'; graph.appendChild(toast);
 
-  /* version history */
-  var H=[
-    {v:'5.0', ts:'02/14 11:35', roll:true,  desc:'Decision threshold retuned to 0.625 on the calibration slice.', by:'model@cardshield'},
-    {v:'4.0', ts:'02/13 18:12', roll:false, desc:'Fraud-class weighting rebalanced for the 1:172 imbalance.', by:'model@cardshield'},
-    {v:'3.0', ts:'02/13 17:02', roll:false, desc:'Versioned Kafka contract with dead-letter routing.', by:'data@cardshield'},
-    {v:'2.0', ts:'02/12 16:15', roll:false, desc:'Deterministic, training-only category encoders.', by:'data@cardshield'},
-    {v:'1.0', ts:'02/12 14:24', roll:false, desc:'Initial Spark RandomForest baseline.', by:'data@cardshield'}
-  ];
+  /* Illustrative workflow notes, not deployment history. */
   var hist=document.getElementById('hist');
-  H.forEach(function(h,i){
-    var d=document.createElement('div'); d.className='hitem'+(i>0?' dim':'');
-    d.style.setProperty('--d',(0.4+i*0.1)+'s');
-    d.innerHTML='<div class="hhead"><span class="v">Version '+h.v+'</span><span class="ts">'+h.ts+'</span>'+
-      (h.roll?'<span class="roll"><span class="spin"></span>Rollout 40%</span>':'')+'</div>'+
-      '<div class="hdesc">'+h.desc+'</div>'+
-      '<div class="hby"><span class="dm"></span>by '+h.by+'</div>';
-    hist.appendChild(d);
+  [
+    ['Input validation', 'Check the versioned event contract.'],
+    ['Scoring', 'Apply the saved Spark model and configured review threshold.'],
+    ['Persistence', 'Store decisions and review flags in Cassandra.'],
+    ['Demonstration', 'Animated scores and events are scripted examples, not live telemetry.']
+  ].forEach(function(note){
+    var d=document.createElement('div'); d.className='hitem';
+    var heading=document.createElement('div'); heading.className='hhead'; heading.textContent=note[0];
+    var body=document.createElement('div'); body.className='hdesc'; body.textContent=note[1];
+    d.appendChild(heading); d.appendChild(body); hist.appendChild(d);
   });
 
   /* ---------- fit / zoom ---------- */
@@ -488,8 +483,8 @@
 
   function showToast(sc){
     var word, cls;
-    if(sc.verdict==='fraud'){ word='FRAUD'; cls='vf'; }
-    else if(sc.verdict==='approve'){ word='APPROVED'; cls='va'; }
+    if(sc.verdict==='fraud'){ word='FLAGGED'; cls='vf'; }
+    else if(sc.verdict==='approve'){ word='LOW RISK'; cls='va'; }
     else { word='ROUTED TO DLQ'; cls='vd'; }
     var p = sc.prob==='—' ? '' : ' · <span class="mono">p='+sc.prob+'</span>';
     toast.innerHTML='<span class="mono">txn '+sc.tx+'</span> · '+sc.amt+p+' → <b class="'+cls+'">'+word+'</b>';
@@ -535,7 +530,7 @@
       if(i===sc.path.length-1){
         token.classList.remove('show');
         if(sc.verdict==='fraud'){ el.classList.add('fire'); tagFor(id,'red','⚠ ALERT'); }
-        else if(sc.verdict==='approve'){ el.classList.add('fire'); tagFor(id,'green','✓ APPROVED'); }
+        else if(sc.verdict==='approve'){ el.classList.add('fire'); tagFor(id,'green','✓ LOW RISK'); }
         else { el.classList.add('fire'); tagFor(id,'orange','→ DLQ'); }
         showToast(sc);
       }

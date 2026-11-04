@@ -87,7 +87,7 @@ export const submitPipelineTransaction = (input: PredictionInput) =>
     body: JSON.stringify(input),
   }).catch((reason: unknown) => {
     const message = reason instanceof Error ? reason.message : 'Live pipeline unavailable'
-    throw new Error(`The live Kafka pipeline is offline (${message}). Use Instant API for an exported scenario.`)
+    throw new Error(`The live Kafka pipeline is offline (${message}). Use Direct scoring for an exported scenario.`)
   })
 
 export const getPipelineStatus = (transactionId: string) =>

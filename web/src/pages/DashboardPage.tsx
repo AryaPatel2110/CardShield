@@ -81,13 +81,19 @@ export default function DashboardPage() {
         <div>
           <div className="eyebrow"><i /> Operations center</div>
           <h1>Fraud overview</h1>
-          <p>Live decisions from the CardShield scoring pipeline.</p>
+          <p>{snapshotMode ? 'Saved analysis from the CardShield scoring pipeline.' : error ? 'Demonstration preview of scoring decisions.' : 'Live decisions from the CardShield scoring pipeline.'}</p>
         </div>
         <button className="refresh-button" onClick={() => void load()} disabled={loading}>
           <span className={`refresh-symbol ${loading ? 'spinning' : ''}`} aria-hidden="true" /> Refresh
         </button>
       </div>
 
+      {snapshotMode && !error && (
+        <div className="error-banner preview-banner">
+          <strong>Saved analysis</strong>
+          <span>Captured scoring results; live services are unavailable. These results do not auto-refresh.</span>
+        </div>
+      )}
       {error && (
         <div className="error-banner preview-banner">
           <strong>Preview data</strong>
@@ -117,7 +123,7 @@ export default function DashboardPage() {
           value={number.format(data?.metrics.total_transactions ?? 0)}
           trend={`${number.format(data?.window.maximum_transactions ?? 250)} across ${data?.window.days ?? 7} days`}
         />
-        <Metric label="Fraud detected" value={number.format(data?.metrics.fraud_transactions ?? 0)} trend="Model decisions" danger />
+        <Metric label="Flagged for review" value={number.format(data?.metrics.fraud_transactions ?? 0)} trend="Model decisions" danger />
         <Metric label="Throughput" value={`${(data?.metrics.transactions_per_minute ?? 0).toFixed(1)}/min`} trend="Across observed window" />
         <Metric label="Amount at risk" value={money.format(data?.metrics.amount_at_risk ?? 0)} trend="Flagged transaction value" danger />
       </div>
@@ -136,8 +142,8 @@ export default function DashboardPage() {
               <div><strong>{percent(data?.metrics.fraud_rate ?? 0)}</strong><span>flagged</span></div>
             </div>
             <div className="risk-legend">
-              <div><i className="safe" /><span>Legitimate</span><strong>{number.format((data?.metrics.total_transactions ?? 0) - (data?.metrics.fraud_transactions ?? 0))}</strong></div>
-              <div><i className="fraud" /><span>Fraud</span><strong>{number.format(data?.metrics.fraud_transactions ?? 0)}</strong></div>
+              <div><i className="safe" /><span>Not flagged</span><strong>{number.format((data?.metrics.total_transactions ?? 0) - (data?.metrics.fraud_transactions ?? 0))}</strong></div>
+              <div><i className="fraud" /><span>Flagged</span><strong>{number.format(data?.metrics.fraud_transactions ?? 0)}</strong></div>
               <div><i className="neutral" /><span>Avg. risk score</span><strong>{percent(data?.metrics.average_probability ?? 0)}</strong></div>
             </div>
           </div>
