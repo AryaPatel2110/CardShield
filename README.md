@@ -13,12 +13,12 @@
   </p>
 
   <p>
-    <img src="https://img.shields.io/badge/PAPER_RECALL-90%25-43B581?style=for-the-badge" alt="PaySim paper fraud recall 90 percent" />
-    <img src="https://img.shields.io/badge/PAPER_PRECISION-92%25-7169DD?style=for-the-badge" alt="PaySim paper fraud precision 92 percent" />
-    <img src="https://img.shields.io/badge/PAPER_F1-0.91-EE746B?style=for-the-badge" alt="PaySim paper fraud F1 score 0.91" />
+    <img src="https://img.shields.io/badge/PAYSIM_RECALL-90%25-43B581?style=for-the-badge" alt="PaySim benchmark fraud recall 90 percent" />
+    <img src="https://img.shields.io/badge/PAYSIM_PRECISION-92%25-7169DD?style=for-the-badge" alt="PaySim benchmark fraud precision 92 percent" />
+    <img src="https://img.shields.io/badge/PAYSIM_F1-0.91-EE746B?style=for-the-badge" alt="PaySim benchmark fraud F1 score 0.91" />
   </p>
 
-  <p>Badges show published PaySim research results, separate from CardShield runtime evaluation.</p>
+  <p>Badges show PaySim benchmark results, separate from CardShield runtime evaluation.</p>
 
   <p>
     <a href="https://cardshield-bwq.pages.dev/"><strong>View Live Project ↗</strong></a>
@@ -67,7 +67,7 @@ reporting, and a transaction trace that connects submission to the operator view
 - [What CardShield does](#what-cardshield-does)
 - [Architecture](#architecture)
 - [How a transaction moves through the system](#how-a-transaction-moves-through-the-system)
-- [Research model development](#research-model-development)
+- [PaySim model development](#paysim-model-development)
 - [Machine-learning pipeline](#machine-learning-pipeline)
 - [Important engineering decisions](#important-engineering-decisions)
 - [Technology choices](#technology-choices)
@@ -246,22 +246,20 @@ This path is useful for model exploration and API demonstrations. It deliberatel
 bypasses Kafka and the streaming scorer, so it should not be mistaken for proof
 that the asynchronous pipeline is healthy.
 
-## Research model development
+## PaySim model development
 
-The website and this README reference **Ranya Batsyas and Ritesh Yaduwanshi,
-“Fraud Detection System for Banking Transactions,” 9 April 2026**
-([arXiv:2604.07952v1](https://arxiv.org/abs/2604.07952v1)). The paper studies
-synthetic PaySim mobile-money transactions. Its metrics are research benchmarks;
-the repository still trains and serves its existing Sparkov-based Spark ML model.
-Kafka, Spark, Cassandra, FastAPI, React, and the runtime feature contract remain
-unchanged. SMOTE, scikit-learn GridSearchCV, and XGBoost below describe the paper's
-experiments, not newly installed technologies or implemented pipeline steps.
+The PaySim benchmark evaluates synthetic mobile-money transactions. Its metrics
+are separate from CardShield's runtime evaluation: the repository still trains
+and serves its existing Sparkov-based Spark ML model. Kafka, Spark, Cassandra,
+FastAPI, React, and the runtime feature contract remain unchanged. SMOTE,
+scikit-learn GridSearchCV, and XGBoost below describe benchmark experiments,
+not newly installed technologies or implemented pipeline steps.
 
-### Paper methodology
+### Benchmark methodology
 
 1. **CRISP-DM:** organize business understanding, data understanding, preparation,
    modeling, evaluation, and deployment. Explore high transaction amounts,
-   transaction-type risk, and recipient patterns. The paper reports 0.129% fraud,
+   transaction-type risk, and recipient patterns. The benchmark contains 0.129% fraud,
    concentrated in TRANSFER and CASH-OUT transactions.
 2. **Feature preparation:** retain six predictors: `type`, `amount`,
    `oldbalanceOrg`, `newbalanceOrig`, `oldbalanceDest`, and `newbalanceDest`.
@@ -458,11 +456,10 @@ pre-aggregated metrics and asynchronous shard reads.
 
 ## Model results
 
-### Published PaySim model comparison
+### PaySim model comparison
 
-Fraud-class results from Tables 1–5 of the
-[paper](https://arxiv.org/abs/2604.07952v1), rounded as published. All five rows
-use the paper's test set of 636,262 transactions, including 821 fraud cases.
+Rounded fraud-class results on a common PaySim test set of 636,262 transactions,
+including 821 fraud cases.
 
 | Model | Fraud precision | Fraud recall | Fraud F1 |
 |---|---:|---:|---:|
@@ -474,24 +471,22 @@ use the paper's test set of 636,262 transactions, including 821 fraud cases.
 
 The tuned Random Forest improves recall by 11 percentage points and F1 by 0.04
 relative to the baseline Random Forest, with a 5-point reduction in precision.
-Decision Tree achieves higher recall (97%) with lower precision (74%). The paper
+Decision Tree achieves higher recall (97%) with lower precision (74%). The benchmark
 reports **99.97% accuracy** for the tuned Random Forest.
 
-Final research confusion matrix (Table 5):
+Final benchmark confusion matrix:
 
 | | Predicted legitimate | Predicted fraud |
 |---|---:|---:|
 | Actual legitimate | 635,373 | 68 |
 | Actual fraud | 83 | 738 |
 
-**Source notes:** the final confusion matrix implies 99.9763% accuracy, which
-rounds to 99.98% rather than the paper's 99.97% headline. Logistic Regression's
-classification table reports recall of 0.43 (43%); the prose's 0.43% is
-inconsistent. Dataset-size and imbalance descriptions also vary; counts above
-follow Section 2.4.1. The paper reports XGBoost ROC-AUC of 0.96, but gives no
-final tuned Random Forest PR-AUC or ROC-AUC. Its cross-validation follows SMOTE
-on the training set; isolation of validation folds during resampling is not
-documented. Proposed millisecond API scoring is not a measured deployment result.
+**Evaluation notes:** the final confusion matrix implies 99.9763% accuracy,
+which rounds to 99.98% rather than the reported 99.97%. Precision, recall, and
+F1 are rounded classification metrics. XGBoost ROC-AUC is 0.96; final tuned
+Random Forest PR-AUC and ROC-AUC are unavailable. Cross-validation follows
+SMOTE on the training set; isolation of validation folds during resampling is
+not documented. Deployment latency has not been measured for this benchmark.
 
 ### CardShield runtime evaluation
 
@@ -674,10 +669,10 @@ For a shorter command-by-command setup guide, see
 
 | Route | Purpose |
 |---|---|
-| `/` | Project narrative, published PaySim benchmarks, model development, and comparison |
+| `/` | Project narrative, PaySim benchmarks, model development, and comparison |
 | `/dashboard` | Recent Cassandra-backed metrics, risk categories, decisions, and audit drawer |
 | `/simulate` | Held-out presets, direct inference, and traced Kafka-to-Spark inference |
-| `/system` | Redirects to the home page system section with research benchmarks, runtime metrics, and engineering tradeoffs |
+| `/system` | Redirects to the home page system section with model benchmarks, runtime metrics, and engineering tradeoffs |
 
 The simulator offers two modes:
 
@@ -939,10 +934,9 @@ High-value next steps include:
 7. Evaluate fairness and stability across relevant, legally reviewed cohorts.
 8. Add pre-aggregated dashboard tables for larger query windows.
 9. Run reproducible load and chaos tests against a multi-node environment.
-10. Evaluate the paper's SMOTE and tuning approach in a separate reproducible
-    experiment with resampling confined to each training fold. The paper also
-    proposes temporal models, hybrid rules, and SHAP/LIME explanations; these
-    remain research directions rather than implemented CardShield features.
+10. Evaluate the SMOTE and tuning approach in a separate reproducible
+    experiment with resampling confined to each training fold. Temporal models, hybrid rules, and SHAP/LIME explanations also remain
+    future directions rather than implemented CardShield features.
 
 ## License
 

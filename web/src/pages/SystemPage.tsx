@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getModelReport } from '../api'
 import type { ModelReport } from '../types'
-import PaperResults from '../components/PaperResults'
+import BenchmarkResults from '../components/BenchmarkResults'
 
 const percent = (value?: number) => value === undefined
   ? 'Pending'
@@ -25,10 +25,10 @@ export default function SystemPage() {
       <div className="system-heading">
         <div className="eyebrow"><i /> Engineering evidence</div>
         <h2 id="system-title">Inside the shield</h2>
-        <p>Research benchmarks, model development, and measured quality from the CardShield pipeline.</p>
+        <p>Model benchmarks, model development, and measured quality from the CardShield pipeline.</p>
       </div>
 
-      <PaperResults />
+      <BenchmarkResults />
 
       <div className="evidence-grid">
         <article className="panel model-panel">
@@ -80,8 +80,8 @@ export default function SystemPage() {
           <ul>
             <li><strong>Imbalanced labels</strong><span>PR AUC, recall, and precision lead the evaluation, not accuracy.</span></li>
             <li><strong>Decision threshold</strong><span>Must be tuned against false decline and fraud loss costs.</span></li>
-            <li><strong>Categorical encoding</strong><span>The paper label-encodes transaction type; this pipeline retains its existing Spark encoders.</span></li>
-            <li><strong>Benchmark scope</strong><span>PaySim research scores do not establish the quality or latency of this deployed Spark model.</span></li>
+            <li><strong>Categorical encoding</strong><span>The PaySim benchmark label-encodes transaction type; this pipeline retains its existing Spark encoders.</span></li>
+            <li><strong>Benchmark scope</strong><span>PaySim benchmark scores do not establish the quality or latency of this deployed Spark model.</span></li>
             <li><strong>Sensitive attributes</strong><span>Gender and occupation require fairness review before production use.</span></li>
           </ul>
         </article>

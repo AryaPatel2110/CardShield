@@ -112,7 +112,7 @@ export default function SimulatorPage() {
       <div className="simulator-heading">
         <div className="eyebrow"><i /> Interactive model</div>
         <h1>Transaction simulator</h1>
-        <p>Enter payment details and run them through the trained Spark fraud pipeline. PaySim paper benchmarks are documented on the home page; this simulator scores with the existing CardShield model.</p>
+        <p>Enter payment details and run them through the trained Spark fraud pipeline. PaySim benchmarks are documented on the home page; this simulator scores with the existing CardShield model.</p>
       </div>
 
       <div className="simulator-layout">
