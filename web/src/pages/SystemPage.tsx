@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getModelReport } from '../api'
 import type { ModelReport } from '../types'
+import PaperResults from '../components/PaperResults'
 
 const percent = (value?: number) => value === undefined
   ? 'Pending'
@@ -24,13 +25,15 @@ export default function SystemPage() {
       <div className="system-heading">
         <div className="eyebrow"><i /> Engineering evidence</div>
         <h2 id="system-title">Inside the shield</h2>
-        <p>Measured model quality and the engineering tradeoffs behind each decision.</p>
+        <p>Research benchmarks, model development, and measured quality from the CardShield pipeline.</p>
       </div>
+
+      <PaperResults />
 
       <div className="evidence-grid">
         <article className="panel model-panel">
           <div className="panel-heading">
-            <div><span>Held out evaluation</span><h2>Model quality</h2></div>
+            <div><span>CardShield runtime · separate evaluation</span><h2>Pipeline model quality</h2></div>
             <small>{report?.model_version ?? 'Loading…'}</small>
           </div>
           {!report?.available && (
@@ -44,6 +47,7 @@ export default function SystemPage() {
               <div className="model-metrics">
                 <ModelMetric label="Fraud recall" value={percent(report.metrics.fraud_recall)} primary />
                 <ModelMetric label="Fraud precision" value={percent(report.metrics.fraud_precision)} primary />
+                <ModelMetric label="Fraud F1" value={report.metrics.fraud_f1.toFixed(3)} />
                 <ModelMetric label="PR AUC" value={percent(report.metrics.area_under_pr)} />
                 <ModelMetric label="ROC AUC" value={percent(report.metrics.area_under_roc)} />
               </div>
@@ -76,7 +80,8 @@ export default function SystemPage() {
           <ul>
             <li><strong>Imbalanced labels</strong><span>PR AUC, recall, and precision lead the evaluation, not accuracy.</span></li>
             <li><strong>Decision threshold</strong><span>Must be tuned against false decline and fraud loss costs.</span></li>
-            <li><strong>Categorical encoding</strong><span>Integer labels are a baseline; hashing or target encoding is the next experiment.</span></li>
+            <li><strong>Categorical encoding</strong><span>The paper label-encodes transaction type; this pipeline retains its existing Spark encoders.</span></li>
+            <li><strong>Benchmark scope</strong><span>PaySim research scores do not establish the quality or latency of this deployed Spark model.</span></li>
             <li><strong>Sensitive attributes</strong><span>Gender and occupation require fairness review before production use.</span></li>
           </ul>
         </article>

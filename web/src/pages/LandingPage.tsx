@@ -255,7 +255,7 @@ function MerchantBenefits() {
           <h2 id="merchant-benefits-title">Better fraud operations for every payment.</h2>
         </div>
         <div className="merchant-benefit-stats">
-          <div><strong>66.5%</strong><span>Fraud recall in held out evaluation</span></div>
+          <div><strong>90%</strong><span>Fraud recall reported in the PaySim paper</span><a href="#paper-results">View research benchmark</a></div>
           <div><strong>4</strong><span>Auditable decision checkpoints</span></div>
         </div>
       </div>

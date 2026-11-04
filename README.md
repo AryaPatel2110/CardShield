@@ -13,10 +13,12 @@
   </p>
 
   <p>
-    <img src="https://img.shields.io/badge/FRAUD_RECALL-66.52%25-43B581?style=for-the-badge" alt="Fraud recall 66.52 percent" />
-    <img src="https://img.shields.io/badge/PR_AUC-45.24%25-7169DD?style=for-the-badge" alt="PR AUC 45.24 percent" />
-    <img src="https://img.shields.io/badge/EVALUATION_ROWS-278%2C217-EE746B?style=for-the-badge" alt="278,217 evaluation rows" />
+    <img src="https://img.shields.io/badge/PAPER_RECALL-90%25-43B581?style=for-the-badge" alt="PaySim paper fraud recall 90 percent" />
+    <img src="https://img.shields.io/badge/PAPER_PRECISION-92%25-7169DD?style=for-the-badge" alt="PaySim paper fraud precision 92 percent" />
+    <img src="https://img.shields.io/badge/PAPER_F1-0.91-EE746B?style=for-the-badge" alt="PaySim paper fraud F1 score 0.91" />
   </p>
+
+  <p>Badges show published PaySim research results, separate from CardShield runtime evaluation.</p>
 
   <p>
     <a href="https://cardshield-bwq.pages.dev/"><strong>View Live Project ↗</strong></a>
@@ -65,6 +67,7 @@ reporting, and a transaction trace that connects submission to the operator view
 - [What CardShield does](#what-cardshield-does)
 - [Architecture](#architecture)
 - [How a transaction moves through the system](#how-a-transaction-moves-through-the-system)
+- [Research model development](#research-model-development)
 - [Machine-learning pipeline](#machine-learning-pipeline)
 - [Important engineering decisions](#important-engineering-decisions)
 - [Technology choices](#technology-choices)
@@ -243,6 +246,43 @@ This path is useful for model exploration and API demonstrations. It deliberatel
 bypasses Kafka and the streaming scorer, so it should not be mistaken for proof
 that the asynchronous pipeline is healthy.
 
+## Research model development
+
+The website and this README reference **Ranya Batsyas and Ritesh Yaduwanshi,
+“Fraud Detection System for Banking Transactions,” 9 April 2026**
+([arXiv:2604.07952v1](https://arxiv.org/abs/2604.07952v1)). The paper studies
+synthetic PaySim mobile-money transactions. Its metrics are research benchmarks;
+the repository still trains and serves its existing Sparkov-based Spark ML model.
+Kafka, Spark, Cassandra, FastAPI, React, and the runtime feature contract remain
+unchanged. SMOTE, scikit-learn GridSearchCV, and XGBoost below describe the paper's
+experiments, not newly installed technologies or implemented pipeline steps.
+
+### Paper methodology
+
+1. **CRISP-DM:** organize business understanding, data understanding, preparation,
+   modeling, evaluation, and deployment. Explore high transaction amounts,
+   transaction-type risk, and recipient patterns. The paper reports 0.129% fraud,
+   concentrated in TRANSFER and CASH-OUT transactions.
+2. **Feature preparation:** retain six predictors: `type`, `amount`,
+   `oldbalanceOrg`, `newbalanceOrig`, `oldbalanceDest`, and `newbalanceDest`.
+   Remove `step`, `nameOrig`, `nameDest`, and `isFlaggedFraud`. Apply LabelEncoder
+   to transaction type.
+3. **Stratified split:** reserve 10% for testing, with 5,726,358 training rows and
+   636,262 test rows. Training contains 7,392 fraud cases; testing contains 821.
+4. **Baseline comparison:** evaluate Logistic Regression (L-BFGS, 1,000 maximum
+   iterations), unrestricted Decision Tree (seed 42), Random Forest (15 trees,
+   seed 42), and XGBoost (depth 3, learning rate 0.1, seed 42). Select Random
+   Forest for its highest baseline fraud F1 of 0.87.
+5. **Training-only SMOTE:** balance the training classes to 1:1, expanding roughly
+   5.7 million rows to 11.4 million. Keep the test set untouched.
+6. **Hyperparameter tuning:** use GridSearchCV with stratified 3-fold
+   cross-validation and F1 scoring over 16 configurations: 50/100 trees, depth
+   `None`/10, minimum split 2, minimum leaf 1/2, `sqrt` features, and `balanced`
+   class weights. Evaluate the selected model on the reserved test set.
+
+The following pipeline section documents CardShield's implemented training and
+serving behavior, which uses a different dataset and evaluation design.
+
 ## Machine-learning pipeline
 
 ### Dataset strategy
@@ -418,9 +458,49 @@ pre-aggregated metrics and asynchronous shard reads.
 
 ## Model results
 
-The checked-in `models/fraud_pipeline-metadata.json` reports the following result
-for model `local-v1`. These numbers are generated artifacts, not hard-coded
-claims; retraining can change them.
+### Published PaySim model comparison
+
+Fraud-class results from Tables 1–5 of the
+[paper](https://arxiv.org/abs/2604.07952v1), rounded as published. All five rows
+use the paper's test set of 636,262 transactions, including 821 fraud cases.
+
+| Model | Fraud precision | Fraud recall | Fraud F1 |
+|---|---:|---:|---:|
+| Logistic Regression | 85% | 43% | 0.57 |
+| Decision Tree | 74% | 97% | 0.84 |
+| Random Forest baseline | 97% | 79% | 0.87 |
+| XGBoost | 98% | 70% | 0.82 |
+| **Random Forest + SMOTE + tuning** | **92%** | **90%** | **0.91** |
+
+The tuned Random Forest improves recall by 11 percentage points and F1 by 0.04
+relative to the baseline Random Forest, with a 5-point reduction in precision.
+Decision Tree achieves higher recall (97%) with lower precision (74%). The paper
+reports **99.97% accuracy** for the tuned Random Forest.
+
+Final research confusion matrix (Table 5):
+
+| | Predicted legitimate | Predicted fraud |
+|---|---:|---:|
+| Actual legitimate | 635,373 | 68 |
+| Actual fraud | 83 | 738 |
+
+**Source notes:** the final confusion matrix implies 99.9763% accuracy, which
+rounds to 99.98% rather than the paper's 99.97% headline. Logistic Regression's
+classification table reports recall of 0.43 (43%); the prose's 0.43% is
+inconsistent. Dataset-size and imbalance descriptions also vary; counts above
+follow Section 2.4.1. The paper reports XGBoost ROC-AUC of 0.96, but gives no
+final tuned Random Forest PR-AUC or ROC-AUC. Its cross-validation follows SMOTE
+on the training set; isolation of validation folds during resampling is not
+documented. Proposed millisecond API scoring is not a measured deployment result.
+
+### CardShield runtime evaluation
+
+These results use Sparkov data and a time-aware evaluation split, so they are
+not a direct comparison with the PaySim experiment. The saved `local-v1` results
+are available in the versioned website snapshot
+[`web/public/snapshots/model.json`](web/public/snapshots/model.json).
+Training generates `models/fraud_pipeline-metadata.json` locally; that artifact
+is Git-ignored. Retraining can change the results below.
 
 | Metric | Value |
 |---|---:|
@@ -594,10 +674,10 @@ For a shorter command-by-command setup guide, see
 
 | Route | Purpose |
 |---|---|
-| `/` | Project narrative and product entry point |
+| `/` | Project narrative, published PaySim benchmarks, model development, and comparison |
 | `/dashboard` | Recent Cassandra-backed metrics, risk categories, decisions, and audit drawer |
 | `/simulate` | Held-out presets, direct inference, and traced Kafka-to-Spark inference |
-| `/system` | Architecture, component health, model metrics, and engineering tradeoffs |
+| `/system` | Redirects to the home page system section with research benchmarks, runtime metrics, and engineering tradeoffs |
 
 The simulator offers two modes:
 
@@ -859,6 +939,10 @@ High-value next steps include:
 7. Evaluate fairness and stability across relevant, legally reviewed cohorts.
 8. Add pre-aggregated dashboard tables for larger query windows.
 9. Run reproducible load and chaos tests against a multi-node environment.
+10. Evaluate the paper's SMOTE and tuning approach in a separate reproducible
+    experiment with resampling confined to each training fold. The paper also
+    proposes temporal models, hybrid rules, and SHAP/LIME explanations; these
+    remain research directions rather than implemented CardShield features.
 
 ## License
 
